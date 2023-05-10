@@ -2,9 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Scoreboard</title>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.js" type="text/javascript"></script>
     <script type="text/javascript">
+        const rgba2hex = (rgba) => `#${rgba.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+\.{0,1}\d*))?\)$/).slice(1).map((n, i) => (i === 3 ? Math.round(parseFloat(n) * 255) : parseFloat(n)).toString(16).padStart(2, '0').replace('NaN', '')).join('')}`
         const undoable_scoreboards = []; 
         const redoable_scoreboards = []; 
         function save_state(clear) {
@@ -14,7 +16,7 @@
             redoable_scoreboards.length = 0;
             document.getElementById('redo').classList.remove('redo');
         }
-        function undo() {
+        function undo(evt) {
             if (undoable_scoreboards.length > 0) {
                 var last_scoreboard = undoable_scoreboards.pop();
                 redoable_scoreboards.push(document.getElementById('scoreboard').cloneNode(true));
@@ -24,7 +26,7 @@
                 update_image();
             }
         }
-        function redo() {
+        function redo(evt) {
             if (redoable_scoreboards.length > 0) {
                 var last_scoreboard = redoable_scoreboards.pop();
                 undoable_scoreboards.push(document.getElementById('scoreboard').cloneNode(true));
@@ -52,9 +54,39 @@
             if (counter.endsWith('set') && action == 'plus') {
                 document.getElementById('home_score').textContent = 0;
                 document.getElementById('away_score').textContent = 0;
-            }     
+            }  
+            console.log(evt.currentTarget.id);
+            if (evt.currentTarget.id == 'home_score_plus') {
+                document.getElementById('home_serve').classList.add('serving');
+                document.getElementById('away_serve').classList.remove('serving');
+            }
+            else if (evt.currentTarget.id == 'away_score_plus') {
+                document.getElementById('home_serve').classList.remove('serving');
+                document.getElementById('away_serve').classList.add('serving');
+            }
             document.getElementById(counter).textContent = score;
             update_image();
+        }
+        function toggle_serve(evt) {
+            save_state(false);
+            if(document.getElementById('home_serve').classList.contains('serving')) {
+                document.getElementById('home_serve').classList.remove('serving');
+                document.getElementById('away_serve').classList.add('serving');
+            }
+            else {
+                document.getElementById('home_serve').classList.add('serving');
+                document.getElementById('away_serve').classList.remove('serving');
+            }
+        }
+        function pick_color(evt) {
+            var picker = evt.currentTarget.id + '_picker';
+            var color = window.getComputedStyle(evt.currentTarget, null).getPropertyValue('background-color');
+            document.getElementById(picker).value = rgba2hex(color); //evt.currentTarget.style.backgroundColor;
+            document.getElementById(picker).click();
+        }
+        function set_color(evt) {
+            var team_color = evt.currentTarget.id.replace('_picker', '');
+            document.getElementById(team_color).style.background = evt.currentTarget.value;
         }
         function reset(evt) {
             if(confirm("Would you to reset the game?") == true) {
@@ -91,6 +123,12 @@
             document.getElementById('away_score_minus').counter = 'away_score';
             document.getElementById('away_score_minus').action = 'minus';
             document.getElementById('away_score_minus').addEventListener('click', score);
+            document.getElementById('home_serve').addEventListener('click', toggle_serve);
+            document.getElementById('away_serve').addEventListener('click', toggle_serve);            
+            document.getElementById('home_color').addEventListener('click', pick_color);
+            document.getElementById('away_color').addEventListener('click', pick_color);
+            document.getElementById('home_color_picker').addEventListener('change', set_color);
+            document.getElementById('away_color_picker').addEventListener('change', set_color);
             document.getElementById('undo').addEventListener('click', undo);
             document.getElementById('reset').addEventListener('click', reset);
             document.getElementById('redo').addEventListener('click', redo);
@@ -189,6 +227,10 @@
             background-repeat: no-repeat; 
             background-size: contain; 
         }
+        #home_color_picker, #away_color_picker {
+            display: none;
+            visibility: hidden;
+        }
     </style>    
 </head>
 <body>
@@ -214,15 +256,15 @@
             <td>
                 <div id="scoreboard" class="scoreboard">
                     <div class="home">
-                        <div id="home_set" class="set">1</div>
-                        <div id="home_color" class="color"></div>
+                        <div id="home_set" class="set">2</div>
+                        <div id="home_color" class="color"><input id="home_color_picker" type="color" aria-label="Home color"></div>
                         <div id="home_team" class="team" contentEditable="true">Solna</div>
                         <div id="home_serve" class="serve"></div>
                         <div id="home_score" class="score">15</div>
                     </div>
                     <div class="away">
-                        <div id="away_set" class="set">0</div>
-                        <div id="away_color" class="color"></div>
+                        <div id="away_set" class="set">1</div>
+                        <div id="away_color" class="color"><input id="away_color_picker" type="color" aria-label="Away color"></div>
                         <div id="away_team" class="team" contentEditable="true">Stöcke</div>
                         <div id="away_serve" class="serve serving"></div>
                         <div id="away_score" class="score">9</div>
