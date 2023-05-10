@@ -37,8 +37,21 @@
             }
         }
         function update_image() {
-            html2canvas(document.getElementById('scoreboard'), {allowTaint: true, useCORS: true}).then(function(canvas) {
-                document.body.appendChild(canvas);
+            html2canvas(document.getElementById('scoreboard'), {
+                    async: true,
+                    useCORS: true, 
+                    backgroundColor: null,
+                    logging: false
+                }).then(function(canvas) {
+                    var data = new FormData();
+                    var image = canvas.toDataURL('image/png');
+                    data.append('filedata', image);
+                    data.append('filename', 'scoreboard.png');
+                    fetch('upload.php', {
+                        method: 'POST',
+                        body: data
+                    });
+                    // document.body.appendChild(canvas);
             });        
         }
         function score(evt) {
@@ -55,7 +68,6 @@
                 document.getElementById('home_score').textContent = 0;
                 document.getElementById('away_score').textContent = 0;
             }  
-            console.log(evt.currentTarget.id);
             if (evt.currentTarget.id == 'home_score_plus') {
                 document.getElementById('home_serve').classList.add('serving');
                 document.getElementById('away_serve').classList.remove('serving');
@@ -81,7 +93,7 @@
         function pick_color(evt) {
             var picker = evt.currentTarget.id + '_picker';
             var color = window.getComputedStyle(evt.currentTarget, null).getPropertyValue('background-color');
-            document.getElementById(picker).value = rgba2hex(color); //evt.currentTarget.style.backgroundColor;
+            document.getElementById(picker).value = rgba2hex(color); 
             document.getElementById(picker).click();
         }
         function set_color(evt) {
@@ -97,7 +109,7 @@
                 document.getElementById('away_score').textContent = 0;
                 update_image();
             }
-        }
+        }     
         window.addEventListener('load', function() {
             document.getElementById('home_set_plus').counter = 'home_set';
             document.getElementById('home_set_plus').action = 'plus';
@@ -227,7 +239,7 @@
             background-repeat: no-repeat; 
             background-size: contain; 
         }
-        #home_color_picker, #away_color_picker {
+        #home_color_picker, #away_color_picker, #upload {
             display: none;
             visibility: hidden;
         }
