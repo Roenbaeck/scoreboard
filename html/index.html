@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="-1">
+    <meta http-equiv="Cache-Control" content="no-cache">
+    <script type="text/javascript">
+        window.addEventListener('load', function() {
+            setInterval(() => {
+                document.getElementById('scoreboard').src = 'scoreboard.png?' + (new Date()).getTime();
+            }, 1000);
+        });
+    </script>
+</head>
+<body>
+    <img id="scoreboard" src="scoreboard.png"/>
+</body>
