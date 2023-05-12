@@ -43,7 +43,8 @@
                     async: true,
                     useCORS: true, 
                     backgroundColor: null,
-                    logging: false
+                    logging: false, 
+                    scale: 5
                 }).then(function(canvas) {
                     var data = new FormData();
                     var image = canvas.toDataURL('image/png');
@@ -67,8 +68,10 @@
             } 
             score = score < 0 ? score = 0 : score;    
             if (counter.endsWith('set') && action == 'plus') {
-                document.getElementById('home_score').textContent = 0;
-                document.getElementById('away_score').textContent = 0;
+                if(confirm('Start next set at 0-0?') == true) {
+                    document.getElementById('home_score').textContent = 0;
+                    document.getElementById('away_score').textContent = 0;
+                }
             }  
             if (evt.currentTarget.id == 'home_score_plus') {
                 document.getElementById('home_serve').classList.add('serving');
@@ -283,6 +286,7 @@
             background-position: center; 
             background-repeat: no-repeat; 
             background-size: contain; 
+            aspect-ratio: 1 / 1;
         }
     </style>    
 </head>
