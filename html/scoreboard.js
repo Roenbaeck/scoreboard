@@ -166,4 +166,7 @@ window.addEventListener('load', function() {
     document.getElementById('undo').addEventListener('pointerup', undo);
     document.getElementById('reset').addEventListener('pointerup', reset);
     document.getElementById('redo').addEventListener('pointerup', redo);
+    document.addEventListener('dblclick', function(event) {
+        event.preventDefault();
+    }, { passive: false });
 });      
