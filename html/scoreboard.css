@@ -1,0 +1,109 @@
+body {
+    text-align: center;
+    font-family: Arial, sans-serif;
+}
+table {
+    text-align: center;
+    margin: auto;
+}
+td {
+    height: auto;
+    margin: auto;
+    text-align: center;
+    vertical-align: middle;
+}
+th {
+    font-weight: bold;
+    font-size: 4vh;
+}
+div {
+    vertical-align: middle;
+}
+.scoreboard {
+    display: table;
+    color: white;
+    font-size: 8vh;
+    border-radius: 1vw;
+    padding: 1vh 1vw 1vh 1vw;
+    background: rgba(38, 86, 100, 0.5);
+}
+.home, .away {
+    display: table-row;
+}
+.set, .color, .team, .serve, .score {
+    display: table-cell;
+}
+.team {
+    padding-left: 0.3em;
+    padding-right: 0.5em;
+    text-align: left;
+}
+.score {
+    padding-left: 0.2em;
+    font-weight: bold;
+    text-align: right;
+}
+.set {
+    text-align: left;
+    padding-right: 0.3em;
+    font-weight: bold;
+    color: black;
+}
+.color {
+    height: 8vh;
+    min-height: 8vh;
+    width: 1vw;
+}
+#color_picker {
+    height: 20vh;
+}
+#home_color {
+    background: blue;
+}
+#away_color {
+    background: yellow;
+}
+.button {
+    display: table-cell;
+    width: 5vw;
+    height: 10vh;
+}
+.plus {
+    background-image: url("plus.png");
+    background-position: center; 
+    background-repeat: no-repeat; 
+    background-size: contain; 
+}
+.minus {
+    background-image: url("minus.png");
+    background-position: center; 
+    background-repeat: no-repeat; 
+    background-size: contain;
+}
+.reset {
+    background-image: url("reset.png");
+    background-position: center; 
+    background-repeat: no-repeat; 
+    background-size: contain; 
+}
+.undo, .redo {
+    background-image: url("undo.png");
+    background-position: center; 
+    background-repeat: no-repeat; 
+    background-size: contain; 
+}
+.redo {
+    transform:scaleX(-1);
+}
+.serve {
+    height: 8vh;
+    min-height: 8vh;
+    width: 3vw;
+}
+.serving {
+    background-image: url("volleyball.png");
+    background-position: center; 
+    background-repeat: no-repeat; 
+    background-size: contain; 
+    aspect-ratio: 1 / 1;
+}

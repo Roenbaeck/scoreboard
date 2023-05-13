@@ -4,18 +4,28 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="-1">
     <meta http-equiv="Cache-Control" content="no-cache">
+    <link rel="stylesheet" href="scoreboard.css">
     <script type="text/javascript">
+        const DOM_PARSER = new DOMParser();
         window.addEventListener('load', function() {
             setInterval(() => {
-                document.getElementById('scoreboard').src = 'scoreboard.png?' + (new Date()).getTime();
+                fetch('scoreboard.xml?' + (new Date()).getTime())
+                    .then((response) => {
+                        return response.text();
+                    })
+                    .then((scoreboard) => {
+                        var doc = DOM_PARSER.parseFromString(scoreboard, 'text/xml');
+                        document.getElementById('scoreboard').replaceWith(doc.getElementById('scoreboard'));                        
+                    })
             }, 1000);
         });
     </script>
     <style>
-        body { text-align: right; }
-        img { max-height: 200px; }
+        #scoreboard {
+            float: right;
+        }
     </style>
 </head>
 <body>
-    <img id="scoreboard" src="scoreboard.png"/>
+    <div id="scoreboard"></div>
 </body>
