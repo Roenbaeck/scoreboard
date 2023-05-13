@@ -17,6 +17,7 @@ function undo(evt) {
         document.getElementById('redo').classList.add('redo');
         var doc = DOM_PARSER.parseFromString(last_scoreboard, 'text/xml');
         document.getElementById('scoreboard').replaceWith(doc.getElementById('scoreboard'));        
+        add_scoreboard_listeners();
         if (undoable_scoreboards.length == 0) document.getElementById('undo').classList.remove('undo');
         upload();
     }
@@ -27,7 +28,8 @@ function redo(evt) {
         undoable_scoreboards.push(XML_SERIALIZER.serializeToString(document.getElementById('scoreboard')));
         document.getElementById('undo').classList.add('undo');
         var doc = DOM_PARSER.parseFromString(last_scoreboard, 'text/xml');
-        document.getElementById('scoreboard').replaceWith(doc.getElementById('scoreboard'));        
+        document.getElementById('scoreboard').replaceWith(doc.getElementById('scoreboard'));    
+        add_scoreboard_listeners();    
         if (redoable_scoreboards.length == 0) document.getElementById('redo').classList.remove('redo');
         upload();            
     }
@@ -112,17 +114,7 @@ function reset(evt) {
         window.localStorage.clear();
     }
 }     
-window.addEventListener('load', function() {
-    var scoreboard = window.localStorage.getItem('scoreboard');
-    if(scoreboard) {
-        var doc = DOM_PARSER.parseFromString(scoreboard, 'text/xml');
-        document.getElementById('scoreboard').replaceWith(doc.getElementById('scoreboard'));
-    }
-    var home_color = window.getComputedStyle(document.getElementById('home_color'), null).getPropertyValue('background-color');
-    document.getElementById('home_color_picker').value = rgba2hex(home_color);
-    var away_color = window.getComputedStyle(document.getElementById('away_color'), null).getPropertyValue('background-color');
-    document.getElementById('away_color_picker').value = rgba2hex(away_color);
-
+function add_scoreboard_listeners() {
     document.getElementById('home_set_plus').counter = 'home_set';
     document.getElementById('home_set_plus').action = 'plus';
     document.getElementById('home_set_plus').addEventListener('pointerup', score);
@@ -159,6 +151,18 @@ window.addEventListener('load', function() {
     document.getElementById('home_team').addEventListener('blur', update_team);
     document.getElementById('away_team').addEventListener('focus', save_team);
     document.getElementById('away_team').addEventListener('blur', update_team);
+}
+window.addEventListener('load', function() {
+    var scoreboard = window.localStorage.getItem('scoreboard');
+    if(scoreboard) {
+        var doc = DOM_PARSER.parseFromString(scoreboard, 'text/xml');
+        document.getElementById('scoreboard').replaceWith(doc.getElementById('scoreboard'));
+    }
+    var home_color = window.getComputedStyle(document.getElementById('home_color'), null).getPropertyValue('background-color');
+    document.getElementById('home_color_picker').value = rgba2hex(home_color);
+    var away_color = window.getComputedStyle(document.getElementById('away_color'), null).getPropertyValue('background-color');
+    document.getElementById('away_color_picker').value = rgba2hex(away_color);
+    add_scoreboard_listeners();
     document.getElementById('undo').addEventListener('pointerup', undo);
     document.getElementById('reset').addEventListener('pointerup', reset);
     document.getElementById('redo').addEventListener('pointerup', redo);
