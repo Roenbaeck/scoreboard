@@ -5,7 +5,7 @@ const DOM_PARSER = new DOMParser();
 const XML_SERIALIZER = new XMLSerializer();
 function save_state(clear) {
     if(clear == true) undoable_scoreboards.length = 0;
-    undoable_scoreboards.push(document.getElementById('scoreboard').cloneNode(true));
+    undoable_scoreboards.push(XML_SERIALIZER.serializeToString(document.getElementById('scoreboard')));
     document.getElementById('undo').classList.add('undo');
     redoable_scoreboards.length = 0;
     document.getElementById('redo').classList.remove('redo');
@@ -13,9 +13,10 @@ function save_state(clear) {
 function undo(evt) {
     if (undoable_scoreboards.length > 0) {
         var last_scoreboard = undoable_scoreboards.pop();
-        redoable_scoreboards.push(document.getElementById('scoreboard').cloneNode(true));
+        redoable_scoreboards.push(XML_SERIALIZER.serializeToString(document.getElementById('scoreboard')));
         document.getElementById('redo').classList.add('redo');
-        document.getElementById('scoreboard').replaceWith(last_scoreboard);
+        var doc = DOM_PARSER.parseFromString(last_scoreboard, 'text/xml');
+        document.getElementById('scoreboard').replaceWith(doc.getElementById('scoreboard'));        
         if (undoable_scoreboards.length == 0) document.getElementById('undo').classList.remove('undo');
         upload();
     }
@@ -23,9 +24,10 @@ function undo(evt) {
 function redo(evt) {
     if (redoable_scoreboards.length > 0) {
         var last_scoreboard = redoable_scoreboards.pop();
-        undoable_scoreboards.push(document.getElementById('scoreboard').cloneNode(true));
+        undoable_scoreboards.push(XML_SERIALIZER.serializeToString(document.getElementById('scoreboard')));
         document.getElementById('undo').classList.add('undo');
-        document.getElementById('scoreboard').replaceWith(last_scoreboard);
+        var doc = DOM_PARSER.parseFromString(last_scoreboard, 'text/xml');
+        document.getElementById('scoreboard').replaceWith(doc.getElementById('scoreboard'));        
         if (redoable_scoreboards.length == 0) document.getElementById('redo').classList.remove('redo');
         upload();            
     }
@@ -113,7 +115,7 @@ function reset(evt) {
 window.addEventListener('load', function() {
     var scoreboard = window.localStorage.getItem('scoreboard');
     if(scoreboard) {
-        var doc = new DOMParser().parseFromString(scoreboard, 'text/xml');
+        var doc = DOM_PARSER.parseFromString(scoreboard, 'text/xml');
         document.getElementById('scoreboard').replaceWith(doc.getElementById('scoreboard'));
     }
     var home_color = window.getComputedStyle(document.getElementById('home_color'), null).getPropertyValue('background-color');
