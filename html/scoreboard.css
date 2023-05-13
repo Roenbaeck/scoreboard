@@ -1,3 +1,6 @@
+* {
+    touch-action: manipulation;
+}
 body {
     text-align: center;
     font-family: Arial, sans-serif;
@@ -14,7 +17,7 @@ td {
 }
 th {
     font-weight: bold;
-    font-size: 4vh;
+    font-size: calc(1em + 0.25vw);
 }
 div {
     vertical-align: middle;
@@ -22,9 +25,9 @@ div {
 .scoreboard {
     display: table;
     color: white;
-    font-size: 8vh;
-    border-radius: 1vw;
-    padding: 1vh 1vw 1vh 1vw;
+    font-size: calc(1em + 3vw);
+    border-radius: 0.5em;
+    padding: 0.1em;
     background: rgba(38, 86, 100, 0.5);
 }
 .home, .away {
@@ -39,23 +42,23 @@ div {
     text-align: left;
 }
 .score {
-    padding-left: 0.2em;
+    padding-left: 0.3em;
+    padding-right: 0.2em;
     font-weight: bold;
     text-align: right;
 }
 .set {
     text-align: left;
+    padding-left: 0.2em;
     padding-right: 0.3em;
     font-weight: bold;
     color: black;
 }
 .color {
-    height: 8vh;
-    min-height: 8vh;
     width: 1vw;
 }
-#color_picker {
-    height: 20vh;
+.color_picker {
+    height: 10em; /* 2 buttons */
 }
 #home_color {
     background: blue;
@@ -65,8 +68,8 @@ div {
 }
 .button {
     display: table-cell;
-    width: 5vw;
-    height: 10vh;
+    width: 5em;
+    height: 5em;
 }
 .plus {
     background-image: url("plus.png");
@@ -96,9 +99,7 @@ div {
     transform:scaleX(-1);
 }
 .serve {
-    height: 8vh;
-    min-height: 8vh;
-    width: 5vw;
+    width: 1em;
 }
 .serving {
     background-image: url("volleyball.png");
