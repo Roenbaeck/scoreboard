@@ -16,7 +16,8 @@ function undo(evt) {
         redoable_scoreboards.push(XML_SERIALIZER.serializeToString(document.getElementById('scoreboard')));
         document.getElementById('redo').classList.add('redo');
         var doc = DOM_PARSER.parseFromString(last_scoreboard, 'text/xml');
-        document.getElementById('scoreboard').replaceWith(doc.getElementById('scoreboard'));        
+        document.getElementById('scoreboard').replaceWith(doc.getElementById('scoreboard'));      
+        update_colors();
         add_scoreboard_listeners();
         if (undoable_scoreboards.length == 0) document.getElementById('undo').classList.remove('undo');
         upload();
@@ -29,6 +30,7 @@ function redo(evt) {
         document.getElementById('undo').classList.add('undo');
         var doc = DOM_PARSER.parseFromString(last_scoreboard, 'text/xml');
         document.getElementById('scoreboard').replaceWith(doc.getElementById('scoreboard'));    
+        update_colors();
         add_scoreboard_listeners();    
         if (redoable_scoreboards.length == 0) document.getElementById('redo').classList.remove('redo');
         upload();            
@@ -83,6 +85,12 @@ function toggle_serve(evt) {
         document.getElementById('away_serve').classList.remove('serving');
     }
     upload();
+}
+function update_colors() {
+    var home_color = window.getComputedStyle(document.getElementById('home_color'), null).getPropertyValue('background-color');
+    document.getElementById('home_color_picker').value = rgba2hex(home_color);
+    var away_color = window.getComputedStyle(document.getElementById('away_color'), null).getPropertyValue('background-color');
+    document.getElementById('away_color_picker').value = rgba2hex(away_color);
 }
 function pick_color(evt) {
     var picker = evt.currentTarget.id.replace('set', 'color') + '_picker';
