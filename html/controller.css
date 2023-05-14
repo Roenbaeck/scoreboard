@@ -1,0 +1,114 @@
+* {
+    touch-action: manipulation;
+}
+body {
+    text-align: center;
+    font-family: Arial, sans-serif;
+    font-size: calc(1em + 1vw);
+}
+div {
+    margin: auto;
+    /* border: 1px solid red; */
+}
+.header {
+    font-weight: bold;
+}
+.controller_grid {
+    display: grid;
+    gap: 0.3em 0.5em;
+    justify-content: space-between;
+    place-items: center;
+    grid-template-columns: 2fr 1fr auto 1fr 2fr;
+    grid-template-rows: auto;
+    grid-template-areas: 
+        "cell_header_set . . . cell_header_point"
+        "cell_set cell_color cell_scoreboard . cell_point" 
+        "cell_oops cell_oops cell_oops cell_oops cell_oops";
+}
+.cell_header_set {
+    grid-area: cell_header_set;
+}
+.cell_header_point {
+    grid-area: cell_header_point;
+}
+.cell_set {
+    grid-area: cell_set;
+}
+.cell_color {
+    grid-area: cell_color;
+}
+.cell_scoreboard {
+    grid-area: cell_scoreboard;
+    justify-self: stretch;
+    align-self: start;
+}
+.cell_point {
+    grid-area: cell_point;
+}
+.cell_oops {
+    grid-area: cell_oops;
+}
+@media (orientation: portrait) {
+    .controller_grid {
+        grid-template-columns: 1fr auto 1fr;
+        grid-template-areas: 
+            "cell_scoreboard cell_scoreboard cell_scoreboard" 
+            "cell_header_set . cell_header_point"
+            "cell_set cell_color cell_point" 
+            "cell_oops cell_oops cell_oops";
+    }
+}
+.color_grid {
+    display: grid;
+    gap: 1em 1em;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+}
+.scoring_grid {
+    display: grid;
+    justify-content: space-between;
+    place-items: center;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+    gap: 0.3em 0.5em;
+}
+.button {
+    width: calc(2em + 2vw);
+    height: calc(2em + 2vw);
+}
+.plus {
+    background-image: url("plus.png");
+    background-position: center; 
+    background-repeat: no-repeat; 
+    background-size: contain; 
+}
+.minus {
+    background-image: url("minus.png");
+    background-position: center; 
+    background-repeat: no-repeat; 
+    background-size: contain;
+}
+.oops_grid {
+    display: grid;
+    justify-content: space-between;
+    place-items: center;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: auto;
+    gap: 0.3em 1em;
+}
+.reset {
+    background-image: url("reset.png");
+    background-position: center; 
+    background-repeat: no-repeat; 
+    background-size: contain; 
+}
+.undo, .redo {
+    background-image: url("undo.png");
+    background-position: center; 
+    background-repeat: no-repeat; 
+    background-size: contain; 
+}
+.redo {
+    transform:scaleX(-1);
+}
+
