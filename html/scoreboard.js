@@ -166,10 +166,7 @@ window.addEventListener('load', function() {
         var doc = DOM_PARSER.parseFromString(scoreboard, 'text/xml');
         document.getElementById('scoreboard').replaceWith(doc.getElementById('scoreboard'));
     }
-    var home_color = window.getComputedStyle(document.getElementById('home_color'), null).getPropertyValue('background-color');
-    document.getElementById('home_color_picker').value = rgba2hex(home_color);
-    var away_color = window.getComputedStyle(document.getElementById('away_color'), null).getPropertyValue('background-color');
-    document.getElementById('away_color_picker').value = rgba2hex(away_color);
+    update_colors();
     add_scoreboard_listeners();
     document.getElementById('undo').addEventListener('pointerup', undo);
     document.getElementById('reset').addEventListener('pointerup', reset);
