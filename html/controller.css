@@ -3,8 +3,8 @@
 }
 body {
     text-align: center;
-    font-family: Arial, sans-serif;
-    font-size: calc(1em + 1vw);
+    background-color: #f8fafd;
+    color: #414c60;
 }
 div {
     margin: auto;
@@ -102,13 +102,16 @@ div {
     background-repeat: no-repeat; 
     background-size: contain; 
 }
-.undo, .redo {
+.undo {
     background-image: url("undo.png");
     background-position: center; 
     background-repeat: no-repeat; 
     background-size: contain; 
 }
 .redo {
-    transform:scaleX(-1);
+    background-image: url("redo.png");
+    background-position: center; 
+    background-repeat: no-repeat; 
+    background-size: contain; 
 }
 
