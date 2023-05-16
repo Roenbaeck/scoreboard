@@ -1,12 +1,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
 body {
+    margin: 0;
     font-family: 'Roboto', Arial, sans-serif;
     font-size: calc(1em + 1vw);
 }
 .scoreboard {
     display: table;
     color: white;
-    font-size: 150%;
+    font-size: 142%;
     border-radius: 0.5em;
     padding: 0.1em;
     background: rgba(38, 86, 100, 0.5);
@@ -18,6 +19,7 @@ body {
     display: table-cell;
 }
 .team {
+    position: relative;
     padding-left: 0.3em;
     padding-right: 0.5em;
     text-align: left;

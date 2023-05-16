@@ -1,6 +1,7 @@
 const rgba2hex = (rgba) => `#${rgba.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+\.{0,1}\d*))?\)$/).slice(1).map((n, i) => (i === 3 ? Math.round(parseFloat(n) * 255) : parseFloat(n)).toString(16).padStart(2, '0').replace('NaN', '')).join('')}`
 const undoable_scoreboards = []; 
 const redoable_scoreboards = []; 
+const current_position = { top: 0, bottom: null, left: null, right: 0 };
 const DOM_PARSER = new DOMParser();
 const XML_SERIALIZER = new XMLSerializer();
 function save_state(clear) {
@@ -17,6 +18,7 @@ function undo(evt) {
         document.getElementById('redo').classList.add('redo');
         var doc = DOM_PARSER.parseFromString(last_scoreboard, 'text/xml');
         document.getElementById('scoreboard').replaceWith(doc.getElementById('scoreboard'));      
+        get_position();
         update_colors();
         add_scoreboard_listeners();
         if (undoable_scoreboards.length == 0) document.getElementById('undo').classList.remove('undo');
@@ -30,6 +32,7 @@ function redo(evt) {
         document.getElementById('undo').classList.add('undo');
         var doc = DOM_PARSER.parseFromString(last_scoreboard, 'text/xml');
         document.getElementById('scoreboard').replaceWith(doc.getElementById('scoreboard'));    
+        get_position();
         update_colors();
         add_scoreboard_listeners();    
         if (redoable_scoreboards.length == 0) document.getElementById('redo').classList.remove('redo');
@@ -121,7 +124,52 @@ function reset(evt) {
         upload();
         window.localStorage.clear();
     }
-}     
+} 
+function get_position() {
+    var scoreboard = document.getElementById('scoreboard');
+    current_position.top = window.getComputedStyle(scoreboard, null).getPropertyValue('top');
+    current_position.bottom = window.getComputedStyle(scoreboard, null).getPropertyValue('bottom');
+    current_position.left = window.getComputedStyle(scoreboard, null).getPropertyValue('left');
+    current_position.right = window.getComputedStyle(scoreboard, null).getPropertyValue('right');
+    var style = '';
+    for(p in current_position) {
+        if(current_position[p] != null) {
+            style += p + ':' + current_position[p] + ';';
+        }
+    }
+    document.getElementById('position').style = style;    
+}
+function set_position(evt) {
+    save_state(true);
+    var rect = this.getBoundingClientRect();
+    x_perc = (evt.clientX - rect.x) / rect.width;
+    y_perc = (evt.clientY - rect.y) / rect.height;
+    if(x_perc > 0.5) {
+        current_position.left = null;
+        current_position.right = 0;
+    }
+    else {
+        current_position.left = 0;
+        current_position.right = null;
+    }
+    if(y_perc > 0.5) {
+        current_position.top = null;
+        current_position.bottom = 0;
+    }
+    else {
+        current_position.top = 0;
+        current_position.bottom = null;
+    }
+    var style = '';
+    for(p in current_position) {
+        if(current_position[p] != null) {
+            style += p + ':' + current_position[p] + ';';
+        }
+    }
+    document.getElementById('position').style = style;
+    document.getElementById('scoreboard').style = style;
+    upload();
+}    
 function add_scoreboard_listeners() {
     document.getElementById('home_set_plus').counter = 'home_set';
     document.getElementById('home_set_plus').action = 'plus';
@@ -160,17 +208,25 @@ function add_scoreboard_listeners() {
     document.getElementById('away_team').addEventListener('focus', save_team);
     document.getElementById('away_team').addEventListener('blur', update_team);
 }
+window.addEventListener('scroll', function(evt) {
+    if (!document.activeElement || document.activeElement === document.body) {
+        evt.preventDefault();
+        document.body.scrollIntoView(true);
+    }    
+});
 window.addEventListener('load', function() {
     var scoreboard = window.localStorage.getItem('scoreboard');
     if(scoreboard) {
         var doc = DOM_PARSER.parseFromString(scoreboard, 'text/xml');
         document.getElementById('scoreboard').replaceWith(doc.getElementById('scoreboard'));
+        get_position();
+        update_colors();
     }
-    update_colors();
     add_scoreboard_listeners();
     document.getElementById('undo').addEventListener('pointerup', undo);
     document.getElementById('reset').addEventListener('pointerup', reset);
     document.getElementById('redo').addEventListener('pointerup', redo);
+    document.getElementById('screen').addEventListener('pointerup', set_position);
     document.addEventListener('dblclick', function(event) {
         event.preventDefault();
     }, { passive: false });

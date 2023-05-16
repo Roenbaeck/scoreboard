@@ -13,16 +13,21 @@
                     .then((response) => {
                         return response.text();
                     })
-                    .then((scoreboard) => {
-                        var doc = DOM_PARSER.parseFromString(scoreboard, 'text/xml');
-                        document.getElementById('scoreboard').replaceWith(doc.getElementById('scoreboard'));                        
+                    .then((scoreboard_xml) => {
+                        if(scoreboard_xml) {
+                            var doc = DOM_PARSER.parseFromString(scoreboard_xml, 'text/xml');
+                            var scoreboard = doc.getElementById('scoreboard');
+                            if(scoreboard) {
+                                document.getElementById('scoreboard').replaceWith(scoreboard);
+                            }
+                        }
                     })
             }, 1000);
         });
     </script>
     <style>
         #scoreboard {
-            float: right;
+            position: absolute;
         }
     </style>
 </head>
