@@ -56,8 +56,8 @@ div {
     width: 40%;
     height: 5em;
     grid-area: cell_screen;
-    border: 1px solid #414c60;
-    margin-top: 2vw;
+    border: 3px solid #414c60;
+    margin-top: 1vw;
 }
 @media (orientation: portrait) {
     .cell_screen {
