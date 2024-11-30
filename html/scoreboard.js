@@ -115,7 +115,7 @@ function update_team(evt) {
     upload();
 }
 function reset(evt) {
-    if(confirm("Would you to reset the game?") == true) {
+    if(confirm("Would you like to reset the game?") == true) {
         save_state(true);
         document.getElementById('home_set').textContent = 0;
         document.getElementById('away_set').textContent = 0;
@@ -140,35 +140,37 @@ function get_position() {
     document.getElementById('position').style = style;    
 }
 function set_position(evt) {
-    save_state(true);
-    var rect = this.getBoundingClientRect();
-    x_perc = (evt.clientX - rect.x) / rect.width;
-    y_perc = (evt.clientY - rect.y) / rect.height;
-    if(x_perc > 0.5) {
-        current_position.left = null;
-        current_position.right = 0;
-    }
-    else {
-        current_position.left = 0;
-        current_position.right = null;
-    }
-    if(y_perc > 0.5) {
-        current_position.top = null;
-        current_position.bottom = 0;
-    }
-    else {
-        current_position.top = 0;
-        current_position.bottom = null;
-    }
-    var style = '';
-    for(p in current_position) {
-        if(current_position[p] != null) {
-            style += p + ':' + current_position[p] + ';';
+    if(confirm("Are you sure you want to move the scoreboard?") == true) {
+        save_state(true);
+        var rect = this.getBoundingClientRect();
+        x_perc = (evt.clientX - rect.x) / rect.width;
+        y_perc = (evt.clientY - rect.y) / rect.height;
+        if(x_perc > 0.5) {
+            current_position.left = null;
+            current_position.right = 0;
         }
+        else {
+            current_position.left = 0;
+            current_position.right = null;
+        }
+        if(y_perc > 0.5) {
+            current_position.top = null;
+            current_position.bottom = 0;
+        }
+        else {
+            current_position.top = 0;
+            current_position.bottom = null;
+        }
+        var style = '';
+        for(p in current_position) {
+            if(current_position[p] != null) {
+                style += p + ':' + current_position[p] + ';';
+            }
+        }
+        document.getElementById('position').style = style;
+        document.getElementById('scoreboard').style = style;
+        upload();
     }
-    document.getElementById('position').style = style;
-    document.getElementById('scoreboard').style = style;
-    upload();
 }    
 function add_scoreboard_listeners() {
     document.getElementById('home_set_plus').counter = 'home_set';

@@ -5,6 +5,7 @@ body {
     font-size: calc(1em + 1vw);
 }
 .scoreboard {
+    margin: 3vh 3vw 3vh 3vw; 
     display: table;
     color: white;
     font-size: 142%;
