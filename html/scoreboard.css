@@ -2,7 +2,7 @@
 body {
     margin: 0;
     font-family: 'Roboto', Arial, sans-serif;
-    font-size: calc(1em + 1vw);
+    font-size: calc(1.42vw);
 }
 .scoreboard {
     margin: 3vh 3vw 3vh 3vw; 
