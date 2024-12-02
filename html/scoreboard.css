@@ -2,15 +2,16 @@
 body {
     margin: 0;
     font-family: 'Roboto', Arial, sans-serif;
-    font-size: calc(1.42vw);
+}
+.scoreboard_wrapper {
+    font-size: 2.5vmax;
 }
 .scoreboard {
-    margin: 3vh 3vw 3vh 3vw; 
+    margin: 3vh 3vmax 3vh 3vmax; 
     display: table;
     color: white;
-    font-size: 142%;
-    border-radius: 0.5em;
-    padding: 0.1em;
+    border-radius: 1vmax;
+    padding: 0.5vmax;
     background: rgba(38, 86, 100, 0.5);
 }
 .home, .away {
@@ -21,25 +22,25 @@ body {
 }
 .team {
     position: relative;
-    padding-left: 0.3em;
-    padding-right: 0.5em;
+    padding-left: 1vmax;
+    padding-right: 2vmax;
     text-align: left;
 }
 .score {
-    padding-left: 0.3em;
-    padding-right: 0.2em;
+    padding-left: 1vmax;
+    padding-right: 0.5vmax;
     font-weight: bold;
     text-align: right;
 }
 .set {
     text-align: left;
-    padding-left: 0.2em;
-    padding-right: 0.3em;
+    padding-left: 0.5vmax;
+    padding-right: 1vmax;
     font-weight: bold;
     color: black;
 }
 .color {
-    width: 1vw;
+    width: 1vmax;
 }
 #home_color {
     background: blue;
@@ -48,8 +49,8 @@ body {
     background: yellow;
 }
 .serve {
-    min-width: 1em;
-    width: 1em;
+    min-width: 2.5vmax;
+    width: 2.5vmax;
 }
 .serving {
     background-image: url("volleyball.png");

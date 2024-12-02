@@ -6,6 +6,7 @@ body {
     overflow-y: scroll;
     text-align: center;
     color: #414c60;
+    font-size: calc(1em + 1.42vw);
 }
 div {
     margin: auto;
