@@ -89,8 +89,8 @@ div {
     gap: 0.3em 0.5em;
 }
 .button {
-    width: calc(2em + 2vw);
-    height: calc(2em + 2vw);
+    width: 6vmax;
+    height: 6vmax;
 }
 .plus {
     background-image: url("plus.png");
