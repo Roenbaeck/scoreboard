@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
 body {
     margin: 0;
-    font-family: 'Roboto', Arial, sans-serif;
+    font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
 }
 .scoreboard_wrapper {
     font-size: 2.5vmax;
