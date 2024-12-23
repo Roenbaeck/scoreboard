@@ -9,10 +9,12 @@ body {
 .scoreboard {
     margin: 3vh 3vw 3vh 3vw; 
     display: table;
-    color: white;
     border-radius: 1vmax;
     padding: 0.5vmax;
-    background: rgba(38, 86, 100, 0.5);
+    color: white;
+    color: oklch(100% 0 0);
+    background: rgba(45, 29, 29, 0.5);
+    background: oklch(25% 0.025 20 / 50%);
 }
 .home, .away {
     display: table-row;
@@ -38,6 +40,7 @@ body {
     padding-right: 1vmax;
     font-weight: bold;
     color: black;
+    color: oklch(0% 0 0);
 }
 .color {
     width: 1vmax;
