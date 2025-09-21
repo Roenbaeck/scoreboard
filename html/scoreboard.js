@@ -4,6 +4,10 @@ const redoable_scoreboards = [];
 const current_position = { top: 0, bottom: null, left: null, right: 0 };
 const DOM_PARSER = new DOMParser();
 const XML_SERIALIZER = new XMLSerializer();
+
+// Configuration
+const TOKEN = 'your_secure_token_here';  // Change this to your secure token
+
 function save_state(clear) {
     if(clear == true) undoable_scoreboards.length = 0;
     undoable_scoreboards.push(XML_SERIALIZER.serializeToString(document.getElementById('scoreboard')));
@@ -45,6 +49,7 @@ function upload() {
     var data = new FormData();
     data.append('filedata', scoreboard);
     data.append('filename', 'scoreboard.xml');
+    data.append('token', TOKEN);  // Use the configured token
     fetch('upload.php', {
         method: 'POST',
         body: data
@@ -232,4 +237,4 @@ window.addEventListener('load', function() {
     document.addEventListener('dblclick', function(event) {
         event.preventDefault();
     }, { passive: false });
-});      
+});
