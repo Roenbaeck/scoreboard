@@ -24,7 +24,10 @@ You have two options to run the scoreboard: using Apache with PHP or a standalon
 
 ### Option 2: Python Server (Recommended for Simple Setup)
 
-1. Ensure you have Python 3 installed.
+1. Install Flask:
+   ```bash
+   pip install flask
+   ```
 2. Run the server:
    ```bash
    cd /path/to/scoreboard
@@ -59,7 +62,8 @@ The scoreboard includes basic security measures to prevent unauthorized access:
 
 ## Requirements
 
-- Python 3 (for Python server option)
+- Python 3
+- Flask (`pip install flask`)
 - Web browser with JavaScript enabled
 - PHP (for Apache option)
 

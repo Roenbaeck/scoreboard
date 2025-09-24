@@ -3,14 +3,14 @@
                     <div id="home_set" class="set">0</div>
                     <div id="home_color" class="color"> </div>
                     <div id="home_team" class="team" contenteditable="true">Home team</div>
-                    <div id="home_serve" class="serve serving"> </div>
-                    <div id="home_score" class="score">0</div>
+                    <div id="home_serve" class="serve"> </div>
+                    <div id="home_score" class="score">3</div>
                 </div>
                 <div class="away">
                     <div id="away_set" class="set">0</div>
                     <div id="away_color" class="color"> </div>
                     <div id="away_team" class="team" contenteditable="true">Away team</div>
-                    <div id="away_serve" class="serve"> </div>
-                    <div id="away_score" class="score">0</div>
+                    <div id="away_serve" class="serve serving"> </div>
+                    <div id="away_score" class="score">1</div>
                 </div>
             </div>
