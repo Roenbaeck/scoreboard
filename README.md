@@ -24,9 +24,9 @@ You have two options to run the scoreboard: using Apache with PHP or a standalon
 
 ### Option 2: Python Server (Recommended for Simple Setup)
 
-1. Install Flask:
+1. Install Flask and Waitress:
    ```bash
-   pip install flask
+   pip install flask waitress
    ```
 2. Run the server:
    ```bash

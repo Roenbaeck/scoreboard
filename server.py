@@ -5,6 +5,7 @@ app = Flask(__name__)
 
 # Configuration
 TOKEN = 'your_secure_token_here'  # Change this to your secure token
+PORT = 8081 # Change this to your desired port
 
 @app.route('/')
 def index():
@@ -50,8 +51,9 @@ def upload():
         return str(e), 500
 
 if __name__ == '__main__':
-    PORT = 8081
-    print(f"Serving scoreboard on port {PORT}")
-    print("Controller: http://localhost:8081/scoreboard.html")
-    print("Overlay: http://localhost:8081/index.html")
-    app.run(host='0.0.0.0', port=PORT, debug=False)
+    from waitress import serve
+    print(f"Starting production server with Waitress on port {PORT}")
+    print(f"Access from other devices on your network via your local IP address.")
+    print(f"Controller: http://localhost:{PORT}/scoreboard.html")
+    print(f"Overlay: http://localhost:{PORT}/index.html")
+    serve(app, host='0.0.0.0', port=PORT)
