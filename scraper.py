@@ -116,34 +116,45 @@ def parse_volleyball_data(api_data, team_color_name_map=None):
                 if color:
                     id_to_color[str(tid)] = color
         
-        # Find team names by looking at the first scoring event
-        # Derive team names & IDs using scoring events
-        for event in reversed(events):
-            if event.get('goals') == 1 and event.get('teamName') and event.get('teamId') is not None:
-                score = event.get('currentScore', {})
-                scorer_team_name = event['teamName']
-                scorer_team_id = event['teamId']
-                if score.get('home') == 1 and score.get('away') == 0:
-                    home_team_name = scorer_team_name
-                    home_team_id = scorer_team_id
-                    # Find the other team
-                    for e in events:
-                        if e.get('teamName') and e.get('teamId') != home_team_id:
-                            away_team_name = e['teamName']
-                            away_team_id = e.get('teamId')
-                            break
+        # Prefer ordering from HTML anchors: first = home, second = away
+        if team_color_name_map and len(team_color_name_map) == 2:
+            ordered = list(team_color_name_map.items())  # preserves insertion order (Py3.7+)
+            h_id_str, h_info = ordered[0]
+            a_id_str, a_info = ordered[1]
+            home_team_id = int(h_id_str) if isinstance(h_id_str, str) and h_id_str.isdigit() else h_id_str
+            away_team_id = int(a_id_str) if isinstance(a_id_str, str) and a_id_str.isdigit() else a_id_str
+            if h_info.get('name'):
+                home_team_name = h_info['name']
+            if a_info.get('name'):
+                away_team_name = a_info['name']
+        else:
+            # Derive team names & IDs using scoring events as fallback
+            for event in reversed(events):
+                if event.get('goals') == 1 and event.get('teamName') and event.get('teamId') is not None:
+                    score = event.get('currentScore', {})
+                    scorer_team_name = event['teamName']
+                    scorer_team_id = event['teamId']
+                    if score.get('home') == 1 and score.get('away') == 0:
+                        home_team_name = scorer_team_name
+                        home_team_id = scorer_team_id
+                        # Find the other team
+                        for e in events:
+                            if e.get('teamName') and e.get('teamId') != home_team_id:
+                                away_team_name = e['teamName']
+                                away_team_id = e.get('teamId')
+                                break
+                        break
+                    elif score.get('away') == 1 and score.get('home') == 0:
+                        away_team_name = scorer_team_name
+                        away_team_id = scorer_team_id
+                        for e in events:
+                            if e.get('teamName') and e.get('teamId') != away_team_id:
+                                home_team_name = e['teamName']
+                                home_team_id = e.get('teamId')
+                                break
+                        break
+                if home_team_id and away_team_id:
                     break
-                elif score.get('away') == 1 and score.get('home') == 0:
-                    away_team_name = scorer_team_name
-                    away_team_id = scorer_team_id
-                    for e in events:
-                        if e.get('teamName') and e.get('teamId') != away_team_id:
-                            home_team_name = e['teamName']
-                            home_team_id = e.get('teamId')
-                            break
-                    break
-            if home_team_id and away_team_id:
-                break
 
         # Fallback: if IDs still missing, attempt to infer from first two distinct teamIds encountered
         if not (home_team_id and away_team_id):
@@ -224,46 +235,58 @@ def extract_match_state(api_data, team_color_name_map=None):
             if col:
                 id_to_color[str(tid)] = col
 
-    # Determine team IDs & names
-    for event in reversed(events):
-        if event.get('goals') == 1 and event.get('teamName') and event.get('teamId') is not None:
-            score = event.get('currentScore', {})
-            scorer_team_name = event['teamName']
-            scorer_team_id = event['teamId']
-            if score.get('home') == 1 and score.get('away') == 0:
-                home_team_name = scorer_team_name
-                home_team_id = scorer_team_id
-                for e in events:
-                    if e.get('teamName') and e.get('teamId') != home_team_id:
-                        away_team_name = e['teamName']
-                        away_team_id = e.get('teamId')
-                        break
+    # Preferred: ordering from HTML anchors if available
+    if team_color_name_map and len(team_color_name_map) == 2:
+        ordered = list(team_color_name_map.items())
+        h_id_str, h_info = ordered[0]
+        a_id_str, a_info = ordered[1]
+        home_team_id = int(h_id_str) if isinstance(h_id_str, str) and h_id_str.isdigit() else h_id_str
+        away_team_id = int(a_id_str) if isinstance(a_id_str, str) and a_id_str.isdigit() else a_id_str
+        if h_info.get('name'):
+            home_team_name = h_info['name']
+        if a_info.get('name'):
+            away_team_name = a_info['name']
+    else:
+        # Fallback heuristic using scoring events
+        for event in reversed(events):
+            if event.get('goals') == 1 and event.get('teamName') and event.get('teamId') is not None:
+                score = event.get('currentScore', {})
+                scorer_team_name = event['teamName']
+                scorer_team_id = event['teamId']
+                if score.get('home') == 1 and score.get('away') == 0:
+                    home_team_name = scorer_team_name
+                    home_team_id = scorer_team_id
+                    for e in events:
+                        if e.get('teamName') and e.get('teamId') != home_team_id:
+                            away_team_name = e['teamName']
+                            away_team_id = e.get('teamId')
+                            break
+                    break
+                elif score.get('away') == 1 and score.get('home') == 0:
+                    away_team_name = scorer_team_name
+                    away_team_id = scorer_team_id
+                    for e in events:
+                        if e.get('teamName') and e.get('teamId') != away_team_id:
+                            home_team_name = e['teamName']
+                            home_team_id = e.get('teamId')
+                            break
+                    break
+            if home_team_id and away_team_id:
                 break
-            elif score.get('away') == 1 and score.get('home') == 0:
-                away_team_name = scorer_team_name
-                away_team_id = scorer_team_id
-                for e in events:
-                    if e.get('teamName') and e.get('teamId') != away_team_id:
-                        home_team_name = e['teamName']
-                        home_team_id = e.get('teamId')
-                        break
-                break
-        if home_team_id and away_team_id:
-            break
 
-    if not (home_team_id and away_team_id):
-        seen = {}
-        for e in events:
-            tid = e.get('teamId')
-            tn = e.get('teamName')
-            if tid is not None and tn and tid not in seen:
-                seen[tid] = tn
-            if len(seen) == 2:
-                break
-        if len(seen) == 2 and not (home_team_id and away_team_id):
-            tids = list(seen.keys())
-            home_team_id, away_team_id = tids[0], tids[1]
-            home_team_name, away_team_name = seen[home_team_id], seen[away_team_id]
+        if not (home_team_id and away_team_id):
+            seen = {}
+            for e in events:
+                tid = e.get('teamId')
+                tn = e.get('teamName')
+                if tid is not None and tn and tid not in seen:
+                    seen[tid] = tn
+                if len(seen) == 2:
+                    break
+            if len(seen) == 2 and not (home_team_id and away_team_id):
+                tids = list(seen.keys())
+                home_team_id, away_team_id = tids[0], tids[1]
+                home_team_name, away_team_name = seen[home_team_id], seen[away_team_id]
 
     # Sets won
     try:
@@ -281,8 +304,12 @@ def extract_match_state(api_data, team_color_name_map=None):
         current_home_points = cs.get('home', 0)
         current_away_points = cs.get('away', 0)
 
-    # Determine serving team: try gamestate key first
-    serving_team_id = gamestate.get('servingTeamId') if isinstance(gamestate, dict) else None
+    # Determine serving team: prefer correct key 'teamIdServing' (observed in API), fallback to legacy 'servingTeamId'
+    serving_team_id = None
+    if isinstance(gamestate, dict):
+        serving_team_id = gamestate.get('teamIdServing')
+        if serving_team_id is None:
+            serving_team_id = gamestate.get('servingTeamId')
     if serving_team_id is None:
         # Fallback: last scoring event's team
         for ev in reversed(events):
@@ -377,6 +404,7 @@ def main(argv=None):
     parser.add_argument("--api-interval", type=float, default=1.0, help="Seconds between API polls (default: 1.0)")
     parser.add_argument("--output", default=os.path.join('html', 'scoreboard.xml'), help="Path to write scoreboard XML (default: html/scoreboard.xml)")
     parser.add_argument("--no-summary", action="store_true", help="Suppress textual summary output (useful in daemon mode)")
+    parser.add_argument("--dump-json", help="If set, write the latest raw API JSON to this file for debugging home/away mapping.")
     args = parser.parse_args(argv)
 
     page_url = args.page_url.strip()
@@ -409,6 +437,13 @@ def main(argv=None):
             api_response = requests.get(api_url)
             api_response.raise_for_status()
             api_data = api_response.json()
+            if args.dump_json:
+                try:
+                    with open(args.dump_json, 'w', encoding='utf-8') as jf:
+                        json.dump(api_data, jf, ensure_ascii=False, indent=2)
+                    print(f"Raw API JSON written to {args.dump_json}")
+                except OSError as e:
+                    print(f"Failed to write dump JSON: {e}")
             if not args.no_summary:
                 match_summary = parse_volleyball_data(api_data, team_color_map)
                 print(match_summary)
@@ -449,6 +484,12 @@ def main(argv=None):
                 continue
             api_response.raise_for_status()
             api_data = api_response.json()
+            if args.dump_json:
+                try:
+                    with open(args.dump_json, 'w', encoding='utf-8') as jf:
+                        json.dump(api_data, jf, ensure_ascii=False, indent=2)
+                except OSError:
+                    pass
             state = extract_match_state(api_data, team_color_map)
             if state:
                 if write_scoreboard_xml(state, args.output):
