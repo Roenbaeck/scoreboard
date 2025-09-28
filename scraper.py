@@ -1,0 +1,477 @@
+import requests
+import re
+import json
+import argparse
+import time
+import os
+from urllib.parse import urlparse, parse_qs
+from html import unescape
+
+def get_api_url(url):
+    """Fetch HTML for the page and extract the Profixio match API URL plus raw HTML.
+
+    Returns:
+        (api_url_or_none, html_content_or_empty)
+    """
+    html_content = ''
+    try:
+        print(f"Attempting to fetch content from: {url}")
+        response = requests.get(url)
+        response.raise_for_status()
+        html_content = response.text
+        print("Successfully fetched HTML content.")
+
+        print("Searching for all 'wire:effects' attributes...")
+        matches = re.findall(r'wire:effects="([^"]+)"', html_content)
+
+        if not matches:
+            print("Could not find any 'wire:effects' attributes.")
+            return None, html_content
+
+        print(f"Found {len(matches)} 'wire:effects' attribute(s). Checking each one...")
+
+        for i, effects_str_raw in enumerate(matches):
+            try:
+                effects_str = unescape(effects_str_raw)
+                effects_data = json.loads(effects_str)
+
+                if 'scripts' in effects_data and isinstance(effects_data['scripts'], dict):
+                    for script_content in effects_data['scripts'].values():
+                        api_url_match = re.search(r"apiurl:\s*'([^']*)'", script_content)
+                        if api_url_match:
+                            dirty_url = api_url_match.group(1)
+                            print(f"Found 'apiurl' in effects attribute #{i + 1}.")
+                            clean_url = dirty_url.replace('\\/', '/').replace('\\u0026', '&')
+                            return clean_url, html_content
+            except json.JSONDecodeError:
+                continue
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching page URL: {e}")
+    return None, html_content
+
+
+def extract_team_colors(html_content):
+    """Parse the original match page HTML to map team IDs to jersey colors and names.
+
+    Returns dict: { team_id: { 'color': '#RRGGBB', 'name': 'Team Name' } }
+    """
+    team_map = {}
+    if not html_content:
+        return team_map
+
+    # Limit search to the first big container to reduce noise (optional optimization)
+    # Still safe if it fails to find; fallback to full html.
+    container_match = re.search(r'<div class="w-full flex justify-around[\s\S]*?</div>\s*</div>?', html_content)
+    search_block = container_match.group(0) if container_match else html_content
+
+    anchor_pattern = re.compile(r'<a[^>]+href="([^"]*/teams/(\d+))"[^>]*>(.*?)</a>', re.DOTALL | re.IGNORECASE)
+    for m in anchor_pattern.finditer(search_block):
+        team_id = m.group(2)
+        inner = m.group(3)
+        # Find background color inside the anchor contents
+        color_match = re.search(r'background-color:\s*([^;"\s]+)', inner, re.IGNORECASE)
+        color = color_match.group(1).upper() if color_match else None
+        # Derive a name by stripping tags & comments
+        cleaned = re.sub(r'<!--.*?-->', ' ', inner, flags=re.DOTALL)
+        cleaned = re.sub(r'<[^>]+>', ' ', cleaned)
+        cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+        # Remove the hex color token if it appears at start
+        if color and cleaned.startswith(color):
+            cleaned = cleaned[len(color):].strip()
+        # Heuristic: keep last 5 words if it's very long
+        parts = cleaned.split()
+        if len(parts) > 8:
+            cleaned = ' '.join(parts[-8:])
+        if color:
+            team_map[team_id] = { 'color': color, 'name': cleaned }
+    if team_map:
+        print(f"Extracted {len(team_map)} team color entries: " + ", ".join(f"{tid}:{info['color']}" for tid, info in team_map.items()))
+    else:
+        print("No team color information could be extracted.")
+    return team_map
+
+def parse_volleyball_data(api_data, team_color_name_map=None):
+    """
+    Parses the JSON response from the volleyball API to extract match details.
+
+    Args:
+        api_data: A dictionary loaded from the JSON response.
+
+    Returns:
+        A formatted string with the summary of the match.
+    """
+    try:
+        gamestate = api_data['gamestate']
+        events = api_data['events']
+        
+        home_team_name = "Home"
+        away_team_name = "Away"
+        home_team_id = None
+        away_team_id = None
+        # Build a lookup by team id -> color (from HTML) if provided
+        id_to_color = {}
+        if team_color_name_map:
+            for tid, entry in team_color_name_map.items():
+                color = entry.get('color')
+                if color:
+                    id_to_color[str(tid)] = color
+        
+        # Find team names by looking at the first scoring event
+        # Derive team names & IDs using scoring events
+        for event in reversed(events):
+            if event.get('goals') == 1 and event.get('teamName') and event.get('teamId') is not None:
+                score = event.get('currentScore', {})
+                scorer_team_name = event['teamName']
+                scorer_team_id = event['teamId']
+                if score.get('home') == 1 and score.get('away') == 0:
+                    home_team_name = scorer_team_name
+                    home_team_id = scorer_team_id
+                    # Find the other team
+                    for e in events:
+                        if e.get('teamName') and e.get('teamId') != home_team_id:
+                            away_team_name = e['teamName']
+                            away_team_id = e.get('teamId')
+                            break
+                    break
+                elif score.get('away') == 1 and score.get('home') == 0:
+                    away_team_name = scorer_team_name
+                    away_team_id = scorer_team_id
+                    for e in events:
+                        if e.get('teamName') and e.get('teamId') != away_team_id:
+                            home_team_name = e['teamName']
+                            home_team_id = e.get('teamId')
+                            break
+                    break
+            if home_team_id and away_team_id:
+                break
+
+        # Fallback: if IDs still missing, attempt to infer from first two distinct teamIds encountered
+        if not (home_team_id and away_team_id):
+            seen = {}
+            for e in events:
+                tid = e.get('teamId')
+                tn = e.get('teamName')
+                if tid is not None and tn and tid not in seen:
+                    seen[tid] = tn
+                if len(seen) == 2:
+                    break
+            if len(seen) == 2:
+                tids = list(seen.keys())
+                if not home_team_id:
+                    home_team_id, away_team_id = tids[0], tids[1]
+                    home_team_name, away_team_name = seen[home_team_id], seen[away_team_id]
+
+        home_sets_won = gamestate['currentScore']['homeGoals']
+        away_sets_won = gamestate['currentScore']['awayGoals']
+        
+        current_set_score_home = events[0]['currentScore']['home']
+        current_set_score_away = events[0]['currentScore']['away']
+
+        set_scores = gamestate['currentSetScores']
+        
+        home_color = id_to_color.get(str(home_team_id)) if home_team_id else None
+        away_color = id_to_color.get(str(away_team_id)) if away_team_id else None
+        color_summary = ''
+        if home_color or away_color:
+            color_summary = (
+                " (Colors: "
+                f"{home_team_name}#{home_team_id if home_team_id is not None else ''}:{home_color or 'N/A'}, "
+                f"{away_team_name}#{away_team_id if away_team_id is not None else ''}:{away_color or 'N/A'})"
+            )
+
+        output = [
+            "\n--- Volleyball Match Summary ---",
+            f"\nTeams: {home_team_name} vs. {away_team_name}{color_summary}",
+            f"\nFinal Score (Sets):",
+            f"  - {home_team_name}: {home_sets_won}",
+            f"  - {away_team_name}: {away_sets_won}",
+            f"\nScore in Final Set:",
+            f"  - {home_team_name}: {current_set_score_home}",
+            f"  - {away_team_name}: {current_set_score_away}",
+            "\nSet-by-Set Breakdown:"
+        ]
+        for i, scores in enumerate(set_scores):
+            output.append(f"  - Set {i+1}: {scores['homeGoals']} - {scores['awayGoals']}")
+            
+        return "\n".join(output)
+
+    except (KeyError, IndexError) as e:
+        return f"An error occurred while parsing the data: {e}. Please check the JSON structure."
+
+
+def extract_match_state(api_data, team_color_name_map=None):
+    """Return structured match state for scoreboard rendering.
+
+    Returns dict with keys: home, away each containing id, name, color, sets, points.
+    """
+    try:
+        gamestate = api_data['gamestate']
+        events = api_data['events']
+    except (KeyError, TypeError):
+        return None
+
+    # Reuse logic from parse_volleyball_data (simplified & corrected ordering for current points)
+    home_team_name = "Home"
+    away_team_name = "Away"
+    home_team_id = None
+    away_team_id = None
+
+    # Build id->color from HTML map
+    id_to_color = {}
+    if team_color_name_map:
+        for tid, entry in team_color_name_map.items():
+            col = entry.get('color')
+            if col:
+                id_to_color[str(tid)] = col
+
+    # Determine team IDs & names
+    for event in reversed(events):
+        if event.get('goals') == 1 and event.get('teamName') and event.get('teamId') is not None:
+            score = event.get('currentScore', {})
+            scorer_team_name = event['teamName']
+            scorer_team_id = event['teamId']
+            if score.get('home') == 1 and score.get('away') == 0:
+                home_team_name = scorer_team_name
+                home_team_id = scorer_team_id
+                for e in events:
+                    if e.get('teamName') and e.get('teamId') != home_team_id:
+                        away_team_name = e['teamName']
+                        away_team_id = e.get('teamId')
+                        break
+                break
+            elif score.get('away') == 1 and score.get('home') == 0:
+                away_team_name = scorer_team_name
+                away_team_id = scorer_team_id
+                for e in events:
+                    if e.get('teamName') and e.get('teamId') != away_team_id:
+                        home_team_name = e['teamName']
+                        home_team_id = e.get('teamId')
+                        break
+                break
+        if home_team_id and away_team_id:
+            break
+
+    if not (home_team_id and away_team_id):
+        seen = {}
+        for e in events:
+            tid = e.get('teamId')
+            tn = e.get('teamName')
+            if tid is not None and tn and tid not in seen:
+                seen[tid] = tn
+            if len(seen) == 2:
+                break
+        if len(seen) == 2 and not (home_team_id and away_team_id):
+            tids = list(seen.keys())
+            home_team_id, away_team_id = tids[0], tids[1]
+            home_team_name, away_team_name = seen[home_team_id], seen[away_team_id]
+
+    # Sets won
+    try:
+        home_sets_won = gamestate['currentScore']['homeGoals']
+        away_sets_won = gamestate['currentScore']['awayGoals']
+    except (KeyError, TypeError):
+        home_sets_won = away_sets_won = 0
+
+    # Current set points: use latest event currentScore not earliest
+    current_home_points = 0
+    current_away_points = 0
+    if events:
+        latest = events[-1]
+        cs = latest.get('currentScore', {})
+        current_home_points = cs.get('home', 0)
+        current_away_points = cs.get('away', 0)
+
+    # Determine serving team: try gamestate key first
+    serving_team_id = gamestate.get('servingTeamId') if isinstance(gamestate, dict) else None
+    if serving_team_id is None:
+        # Fallback: last scoring event's team
+        for ev in reversed(events):
+            if ev.get('goals') == 1 and ev.get('teamId') is not None:
+                serving_team_id = ev['teamId']
+                break
+
+    state = {
+        'home': {
+            'id': home_team_id,
+            'name': home_team_name,
+            'color': id_to_color.get(str(home_team_id)),
+            'sets': home_sets_won,
+            'points': current_home_points,
+            'serving': serving_team_id == home_team_id
+        },
+        'away': {
+            'id': away_team_id,
+            'name': away_team_name,
+            'color': id_to_color.get(str(away_team_id)),
+            'sets': away_sets_won,
+            'points': current_away_points,
+            'serving': serving_team_id == away_team_id
+        }
+    }
+    return state
+
+
+def hex_to_rgb_tuple(hex_color):
+    if not hex_color:
+        return (128, 128, 128)
+    hc = hex_color.strip().lstrip('#')
+    if len(hc) == 3:
+        hc = ''.join(ch * 2 for ch in hc)
+    if len(hc) != 6:
+        return (128, 128, 128)
+    try:
+        return tuple(int(hc[i:i+2], 16) for i in (0, 2, 4))
+    except ValueError:
+        return (128, 128, 128)
+
+
+def write_scoreboard_xml(state, output_path):
+    """Write (atomically) the scoreboard XML overlay file based on match state."""
+    if not state:
+        return False
+    home = state['home']
+    away = state['away']
+    hr, hg, hb = hex_to_rgb_tuple(home.get('color'))
+    ar, ag, ab = hex_to_rgb_tuple(away.get('color'))
+    home_serve_class = 'serve serving' if home.get('serving') else 'serve'
+    away_serve_class = 'serve serving' if away.get('serving') else 'serve'
+    nbsp = '\u00A0'
+    xml_content = f'''<div xmlns="http://www.w3.org/1999/xhtml" id="scoreboard" class="scoreboard">
+    <div class="home">
+        <div id="home_set" class="set">{home.get('sets', 0)}</div>
+        <div id="home_color" class="color" style="background: rgb({hr}, {hg}, {hb});">{nbsp}</div>
+        <div id="home_team" class="team" contenteditable="true">{home.get('name','Home')}</div>
+        <div id="home_serve" class="{home_serve_class}">{nbsp}</div>
+        <div id="home_score" class="score">{home.get('points',0)}</div>
+    </div>
+    <div class="away">
+        <div id="away_set" class="set">{away.get('sets', 0)}</div>
+        <div id="away_color" class="color" style="background: rgb({ar}, {ag}, {ab});">{nbsp}</div>
+        <div id="away_team" class="team" contenteditable="true">{away.get('name','Away')}</div>
+        <div id="away_serve" class="{away_serve_class}">{nbsp}</div>
+        <div id="away_score" class="score">{away.get('points',0)}</div>
+    </div>
+</div>'''
+    tmp_path = output_path + '.tmp'
+    try:
+        with open(tmp_path, 'w', encoding='utf-8') as f:
+            f.write(xml_content)
+        os.replace(tmp_path, output_path)
+        return True
+    except OSError as e:
+        print(f"Failed writing scoreboard XML: {e}")
+        return False
+
+def main(argv=None):
+    """Entry point for command-line execution.
+
+    The script now requires an explicit full Profixio competition page URL.
+
+    Example:
+      python scraper.py https://www.profixio.com/app/lx/competition/leagueid17734?expandmatch=32334711
+    """
+    parser = argparse.ArgumentParser(description="Fetch / follow a volleyball match from a Profixio competition page URL.")
+    parser.add_argument("page_url", help="Full Profixio page URL containing ?expandmatch=<matchId>.")
+    parser.add_argument("--daemon", action="store_true", help="Run continuously: refresh page every minute & poll API every second.")
+    parser.add_argument("--page-refresh-interval", type=int, default=60, help="Seconds between refreshing original page (default: 60)")
+    parser.add_argument("--api-interval", type=float, default=1.0, help="Seconds between API polls (default: 1.0)")
+    parser.add_argument("--output", default=os.path.join('html', 'scoreboard.xml'), help="Path to write scoreboard XML (default: html/scoreboard.xml)")
+    parser.add_argument("--no-summary", action="store_true", help="Suppress textual summary output (useful in daemon mode)")
+    args = parser.parse_args(argv)
+
+    page_url = args.page_url.strip()
+
+    # Validate presence of expandmatch regardless of its position in query string
+    parsed = urlparse(page_url)
+    query_params = {k.lower(): v for k, v in parse_qs(parsed.query).items()}
+    if 'expandmatch' not in query_params or not query_params['expandmatch']:
+        parser.error("Provided URL must include an 'expandmatch' query parameter (e.g. ?expandmatch=123 or &expandmatch=123).")
+
+    match_id = query_params['expandmatch'][0]
+    print(f"Using page URL: {page_url} (match id: {match_id})")
+
+    def single_cycle():
+        api_url_local, html_content_local = get_api_url(page_url)
+        tcm = extract_team_colors(html_content_local)
+        return api_url_local, tcm
+
+    api_url, team_color_map = single_cycle()
+    if not api_url:
+        print("Could not locate API URL on initial fetch. Exiting.")
+        return 1
+
+    print(f"\nSuccessfully Found API URL: {api_url}")
+
+    last_page_refresh = time.time()
+
+    if not args.daemon:
+        try:
+            api_response = requests.get(api_url)
+            api_response.raise_for_status()
+            api_data = api_response.json()
+            if not args.no_summary:
+                match_summary = parse_volleyball_data(api_data, team_color_map)
+                print(match_summary)
+            state = extract_match_state(api_data, team_color_map)
+            if state:
+                write_scoreboard_xml(state, args.output)
+                print(f"Scoreboard written to {args.output}")
+        except requests.exceptions.RequestException as e:
+            print(f"Error fetching API data: {e}")
+            return 2
+        except json.JSONDecodeError:
+            print("Error: Could not decode the response from the API as JSON.")
+            return 3
+        return 0
+
+    # Daemon mode
+    print("Entering daemon mode. Press Ctrl+C to stop.")
+    cycles = 0
+    while True:
+        now = time.time()
+        # Refresh page (API URL & team colors) if interval passed or API expired errors encountered
+        if now - last_page_refresh >= args.page_refresh_interval:
+            print("[Daemon] Refreshing original page for updated API URL & team colors...")
+            new_api_url, new_team_map = single_cycle()
+            if new_api_url:
+                api_url = new_api_url
+            if new_team_map:
+                team_color_map = new_team_map
+            last_page_refresh = now
+
+        try:
+            api_response = requests.get(api_url, timeout=10)
+            if api_response.status_code == 403:
+                # Possibly expired signature; force refresh next loop
+                print("[Daemon] API returned 403; forcing page refresh next cycle.")
+                last_page_refresh = 0
+                time.sleep(args.api_interval)
+                continue
+            api_response.raise_for_status()
+            api_data = api_response.json()
+            state = extract_match_state(api_data, team_color_map)
+            if state:
+                if write_scoreboard_xml(state, args.output):
+                    if cycles % 10 == 0:  # reduce chatter
+                        print(f"[Daemon] Updated scoreboard (home {state['home']['points']} - away {state['away']['points']})")
+            else:
+                print("[Daemon] Could not extract match state from API data.")
+        except requests.exceptions.RequestException as e:
+            print(f"[Daemon] Error polling API: {e}")
+        except json.JSONDecodeError:
+            print("[Daemon] JSON decode error from API response.")
+        except KeyboardInterrupt:
+            print("\nDaemon stopped by user.")
+            break
+        cycles += 1
+        try:
+            time.sleep(args.api_interval)
+        except KeyboardInterrupt:
+            print("\nDaemon stopped by user.")
+            break
+    return 0
+
+
+if __name__ == "__main__":
+    exit_code = main()
+    raise SystemExit(exit_code)
