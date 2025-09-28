@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap');
 body {
     margin: 0;
     font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
@@ -62,4 +62,27 @@ body {
     background-repeat: no-repeat; 
     background-size: contain; 
     aspect-ratio: 1 / 1;
+}
+.ended {
+    display: table-cell;
+    padding-right: 0.5vmax;
+    text-align: center;
+    font-size: 0.6em;
+    font-weight: 900;
+    color: white;
+    color: oklch(100% 0 0);
+}
+.home .ended { 
+    vertical-align: bottom; 
+    padding-bottom: 0.25vmax;
+}
+.away .ended { 
+    vertical-align: top; 
+    padding-top: 0.25vmax;
+}
+.ended-sets {
+    display: contents; 
+}
+.ended-sets .ended:first-child {
+    padding-left: 1vmax;
 }

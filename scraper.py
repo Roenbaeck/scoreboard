@@ -4,6 +4,7 @@ import json
 import argparse
 import time
 import os
+from datetime import datetime
 from urllib.parse import urlparse, parse_qs
 from html import unescape
 
@@ -174,9 +175,28 @@ def parse_volleyball_data(api_data, team_color_name_map=None):
 
         home_sets_won = gamestate['currentScore']['homeGoals']
         away_sets_won = gamestate['currentScore']['awayGoals']
-        
-        current_set_score_home = events[0]['currentScore']['home']
-        current_set_score_away = events[0]['currentScore']['away']
+
+        # Order events chronologically using created_at (oldest -> newest)
+        def parse_ts(ev):
+            ts = ev.get('created_at') or ev.get('createdAt')
+            if not ts:
+                return None
+            # Normalize Z -> +00:00 for datetime.fromisoformat
+            if ts.endswith('Z'):
+                ts = ts[:-1] + '+00:00'
+            try:
+                return datetime.fromisoformat(ts)
+            except ValueError:
+                return None
+        # Annotate with timestamp; keep original order for stable sort among missing timestamps
+        indexed = []
+        for idx, ev in enumerate(events):
+            indexed.append((parse_ts(ev), idx, ev))
+        indexed.sort(key=lambda t: (t[0] is None, t[0] or datetime.min, t[1]))
+        chronological = [e for _, _, e in indexed]
+        latest_event = chronological[-1] if chronological else {}
+        current_set_score_home = latest_event.get('currentScore', {}).get('home', 0)
+        current_set_score_away = latest_event.get('currentScore', {}).get('away', 0)
 
         set_scores = gamestate['currentSetScores']
         
@@ -288,6 +308,10 @@ def extract_match_state(api_data, team_color_name_map=None):
                 home_team_id, away_team_id = tids[0], tids[1]
                 home_team_name, away_team_name = seen[home_team_id], seen[away_team_id]
 
+    # Detect if match has a terminating event
+    match_ended = any((e.get('stopsMatch') is True) for e in events) if isinstance(events, list) else False
+    print (f"Match ended status: {'Yes' if match_ended else 'No'}")
+
     # Sets won
     try:
         home_sets_won = gamestate['currentScore']['homeGoals']
@@ -295,11 +319,25 @@ def extract_match_state(api_data, team_color_name_map=None):
     except (KeyError, TypeError):
         home_sets_won = away_sets_won = 0
 
-    # Current set points: use latest event currentScore not earliest
+    # Current set points: order events chronologically by created_at
+    def parse_ts(ev):
+        ts = ev.get('created_at') or ev.get('createdAt')
+        if not ts:
+            return None
+        if ts.endswith('Z'):
+            ts = ts[:-1] + '+00:00'
+        try:
+            return datetime.fromisoformat(ts)
+        except ValueError:
+            return None
     current_home_points = 0
     current_away_points = 0
     if events:
-        latest = events[-1]
+        indexed = []
+        for idx, ev in enumerate(events):
+            indexed.append((parse_ts(ev), idx, ev))
+        indexed.sort(key=lambda t: (t[0] is None, t[0] or datetime.min, t[1]))
+        latest = indexed[-1][2]
         cs = latest.get('currentScore', {})
         current_home_points = cs.get('home', 0)
         current_away_points = cs.get('away', 0)
@@ -335,6 +373,13 @@ def extract_match_state(api_data, team_color_name_map=None):
             'serving': serving_team_id == away_team_id
         }
     }
+    if match_ended:
+        state['matchEnded'] = True
+    # Attach completed set scores for overlay (list of dicts with homeGoals/awayGoals)
+    try:
+        state['setScores'] = list(gamestate.get('currentSetScores') or [])
+    except Exception:
+        state['setScores'] = []
     return state
 
 
@@ -363,22 +408,60 @@ def write_scoreboard_xml(state, output_path):
     home_serve_class = 'serve serving' if home.get('serving') else 'serve'
     away_serve_class = 'serve serving' if away.get('serving') else 'serve'
     nbsp = '\u00A0'
-    xml_content = f'''<div xmlns="http://www.w3.org/1999/xhtml" id="scoreboard" class="scoreboard">
-    <div class="home">
-        <div id="home_set" class="set">{home.get('sets', 0)}</div>
-        <div id="home_color" class="color" style="background: rgb({hr}, {hg}, {hb});">{nbsp}</div>
-        <div id="home_team" class="team" contenteditable="true">{home.get('name','Home')}</div>
-        <div id="home_serve" class="{home_serve_class}">{nbsp}</div>
-        <div id="home_score" class="score">{home.get('points',0)}</div>
-    </div>
-    <div class="away">
-        <div id="away_set" class="set">{away.get('sets', 0)}</div>
-        <div id="away_color" class="color" style="background: rgb({ar}, {ag}, {ab});">{nbsp}</div>
-        <div id="away_team" class="team" contenteditable="true">{away.get('name','Away')}</div>
-        <div id="away_serve" class="{away_serve_class}">{nbsp}</div>
-        <div id="away_score" class="score">{away.get('points',0)}</div>
-    </div>
-</div>'''
+    set_scores = state.get('setScores') or []
+    # Build ended set score spans (completed sets). We assume provided order is chronological.
+    # We'll render each completed set's score for home & away respectively.
+    home_ended_fragments = []
+    away_ended_fragments = []
+    for idx, s in enumerate(set_scores, start=1):
+        hgs = s.get('homeGoals')
+        ags = s.get('awayGoals')
+        # Skip if values missing
+        if hgs is None or ags is None:
+            continue
+        home_ended_fragments.append(f'<div id="home_ended_{idx}" class="ended" data-set="{idx}">{hgs}</div>')
+        away_ended_fragments.append(f'<div id="away_ended_{idx}" class="ended" data-set="{idx}">{ags}</div>')
+
+    home_ended_html = '\n        '.join(home_ended_fragments)
+    away_ended_html = '\n        '.join(away_ended_fragments)
+
+    # Wrap ended fragments in a container so CSS :last-child can target the final ended cell
+    if home_ended_html:
+        home_ended_html = '<div class="ended-sets">\n        ' + home_ended_html + '\n        </div>'
+    if away_ended_html:
+        away_ended_html = '<div class="ended-sets">\n        ' + away_ended_html + '\n        </div>'
+
+    # New order: set, color, team, serve, (ended sets), score
+    xml_parts = [
+        '<div xmlns="http://www.w3.org/1999/xhtml" id="scoreboard" class="scoreboard">',
+        '    <div class="home">',
+        f'        <div id="home_set" class="set">{home.get("sets", 0)}</div>',
+        f'        <div id="home_color" class="color" style="background: rgb({hr}, {hg}, {hb});">{nbsp}</div>',
+        f'        <div id="home_team" class="team" contenteditable="true">{home.get("name","Home")}</div>',
+        f'        <div id="home_serve" class="{home_serve_class}">{nbsp}</div>'
+    ]
+    if home_ended_html:
+        for line in home_ended_html.split('\n'):
+            if line.strip():
+                xml_parts.append('        ' + line.strip())
+    match_ended_flag = state.get('matchEnded')
+    if not match_ended_flag:
+        xml_parts.append(f'        <div id="home_score" class="score">{home.get("points",0)}</div>')
+    xml_parts.append('    </div>')  # close home div
+    xml_parts.append('    <div class="away">')
+    xml_parts.append(f'        <div id="away_set" class="set">{away.get("sets", 0)}</div>')
+    xml_parts.append(f'        <div id="away_color" class="color" style="background: rgb({ar}, {ag}, {ab});">{nbsp}</div>')
+    xml_parts.append(f'        <div id="away_team" class="team" contenteditable="true">{away.get("name","Away")}</div>')
+    xml_parts.append(f'        <div id="away_serve" class="{away_serve_class}">{nbsp}</div>')
+    if away_ended_html:
+        for line in away_ended_html.split('\n'):
+            if line.strip():
+                xml_parts.append('        ' + line.strip())
+    if not match_ended_flag:
+        xml_parts.append(f'        <div id="away_score" class="score">{away.get("points",0)}</div>')
+    xml_parts.append('    </div>')  # close away div
+    xml_parts.append('</div>')
+    xml_content = '\n'.join(xml_parts)
     tmp_path = output_path + '.tmp'
     try:
         with open(tmp_path, 'w', encoding='utf-8') as f:
