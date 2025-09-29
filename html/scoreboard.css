@@ -2,17 +2,19 @@
 body {
     margin: 0;
 }
-/* Base positioning for legacy layout; modern theme overrides below */
+
+/* =============================================================
+   THEME: DEFAULT (legacy table layout)
+   Everything under .theme-default … applies when body has class
+   "theme-default" (set via index.html URL param `?theme=default`).
+   ============================================================= */
+
+/* Base positioning and typography for default theme */
 .theme-default #scoreboard { position: absolute; }
 .theme-default .content_wrapper {
     font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
 }
-.theme-modern .content_wrapper {
-    font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
-}
-/* Modern theme uses normal flow for these containers */
-.theme-modern #scoreboard { position: static; }
-.theme-modern .lineup_wrapper, .theme-modern .highlight_wrapper { position: static; }
+
 .theme-default .scoreboard {
     font-size: 2.5vmax;
     margin: 3vh 3vw 3vh 3vw; 
@@ -148,6 +150,20 @@ body {
     font-size: 0.8em;
 }
 
+/* =============================================================
+   THEME: MODERN (glass, flex layout)
+   Everything under .theme-modern … applies when body has class
+   "theme-modern" (set via index.html URL param `?theme=modern`).
+   ============================================================= */
+
+/* Typography and flow overrides for modern theme */
+.theme-modern .content_wrapper {
+    font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+}
+/* Modern theme uses normal flow for these containers */
+.theme-modern #scoreboard { position: static; }
+.theme-modern .lineup_wrapper, .theme-modern .highlight_wrapper { position: static; }
+
 /* === Modern theme: bold, horizontal bar with glass effect and accent colors === */
 .theme-modern {
     --accent: oklch(75% 0.18 260); /* electric blue */
@@ -167,7 +183,8 @@ body {
     align-items: center;
     justify-content: center;
     padding: 0.6vmax 1vmax;
-    margin: 2vh auto;
+    /* Create similar left/right gap as the top gap to avoid edge-to-edge */
+    margin: 2vh 3vw;
     border-radius: 999px;
     background: rgba(18, 22, 40, 0.65);
     background: var(--bg-scoreboard-oklch);
@@ -311,5 +328,3 @@ body {
 .theme-modern .highlight_desc { font-size: 1em; font-weight: 900; margin-bottom: 0.1em; }
 .theme-modern .highlight_player { font-size: 0.9em; opacity: 0.9; }
 
-/* Override absolute positioning from index.html for modern theme */
-.theme-modern #scoreboard { position: static; }
