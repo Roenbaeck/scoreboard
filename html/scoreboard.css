@@ -240,20 +240,26 @@ body {
 }
 /* Serve indicator as glowing dot instead of volleyball icon */
 .theme-modern .serve {
-    width: 0.9em;
-    height: 0.9em;
-    min-width: 0.9em;
+    width: 1.8em;
+    height: 1.8em;
+    min-width: 1.8em;
     aspect-ratio: 1 / 1;
     border-radius: 50%;
     border: 2px solid var(--accent);
-    background: transparent !important;
+    /* Keep center transparent */
+    background-color: transparent;
     box-shadow: none;
 }
 .theme-modern .serving {
-    background: var(--accent) !important;
-    border-color: transparent;
+    /* Show volleyball icon inside the accent ring to indicate serve */
+    background-color: transparent;
+    background-image: url("volleyball.png");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    border-color: var(--accent);
     box-shadow: 0 0 12px var(--accent), 0 0 24px color-mix(in oklch, var(--accent), black 20%);
-    background-image: none !important;
+    position: relative;
 }
 /* Ended sets as small chips following team */
 .theme-modern .ended-sets { display: flex; gap: 0.3em; }
