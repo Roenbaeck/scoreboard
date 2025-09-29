@@ -2,9 +2,17 @@
 body {
     margin: 0;
 }
+/* Base positioning for legacy layout; modern theme overrides below */
+.theme-default #scoreboard { position: absolute; }
 .theme-default .content_wrapper {
     font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
 }
+.theme-modern .content_wrapper {
+    font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+}
+/* Modern theme uses normal flow for these containers */
+.theme-modern #scoreboard { position: static; }
+.theme-modern .lineup_wrapper, .theme-modern .highlight_wrapper { position: static; }
 .theme-default .scoreboard {
     font-size: 2.5vmax;
     margin: 3vh 3vw 3vh 3vw; 
@@ -139,3 +147,169 @@ body {
 .theme-default .highlight_player {
     font-size: 0.8em;
 }
+
+/* === Modern theme: bold, horizontal bar with glass effect and accent colors === */
+.theme-modern {
+    --accent: oklch(75% 0.18 260); /* electric blue */
+    --bg-scoreboard: oklch(20% 0.03 250 / 65%);
+    --bg-scoreboard-oklch: oklch(20% 0.03 250 / 65%);
+    --color-text: oklch(98% 0 0);
+    --bg-lineup: oklch(20% 0.03 250 / 65%);
+    --bg-lineup-oklch: oklch(20% 0.03 250 / 65%);
+    --color-lineup: oklch(98% 0 0);
+    --bg-highlight: oklch(25% 0.05 250 / 80%);
+    --bg-highlight-oklch: oklch(25% 0.05 250 / 80%);
+    --color-highlight: oklch(98% 0 0);
+}
+.theme-modern .scoreboard {
+    display: flex;
+    gap: 2vmax;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6vmax 1vmax;
+    margin: 2vh auto;
+    border-radius: 999px;
+    background: rgba(18, 22, 40, 0.65);
+    background: var(--bg-scoreboard-oklch);
+    color: var(--color-text);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    backdrop-filter: blur(8px);
+}
+.theme-modern .home, .theme-modern .away {
+    display: flex;
+    align-items: center;
+    gap: 1vmax;
+}
+/* Reorder cells inside each side to: color, team, set, serve, ended-sets, score */
+.theme-modern .home .color, .theme-modern .away .color { order: 1; }
+.theme-modern .home .team,  .theme-modern .away .team  { order: 2; }
+.theme-modern .home .set,   .theme-modern .away .set   { order: 3; }
+.theme-modern .home .serve, .theme-modern .away .serve { order: 4; }
+.theme-modern .home .ended-sets, .theme-modern .away .ended-sets { order: 5; }
+.theme-modern .home .score, .theme-modern .away .score { order: 6; }
+
+/* Team name bold, slightly condensed spacing */
+.theme-modern .team {
+    font-weight: 900;
+    letter-spacing: 0.01em;
+    padding: 0 0.5vmax;
+}
+/* Big pill scores */
+.theme-modern .score {
+    font-size: 1.2em;
+    min-width: 2.4em;
+    text-align: center;
+    background: rgba(30, 35, 60, 0.60);
+    background: oklch(30% 0.04 250 / 60%);
+    padding: 0.2em 0.5em;
+    border-radius: 0.6em;
+    box-shadow: inset 0 0 0 2px oklch(60% 0.02 250 / 30%);
+}
+/* Sets as compact badges */
+.theme-modern .set {
+    font-weight: 800;
+    background: rgba(35, 40, 70, 0.50);
+    background: oklch(35% 0.06 250 / 50%);
+    padding: 0.1em 0.5em;
+    border-radius: 0.5em;
+}
+/* Jersey color as circular swatch; visible ring when transparent */
+.theme-modern .color {
+    width: 1.2em;
+    height: 1.2em;
+    border-radius: 50%;
+    border: 2px solid oklch(85% 0 0 / 60%);
+    background-clip: padding-box;
+}
+/* Serve indicator as glowing dot instead of volleyball icon */
+.theme-modern .serve {
+    width: 0.9em;
+    height: 0.9em;
+    min-width: 0.9em;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+    background: transparent !important;
+    box-shadow: none;
+}
+.theme-modern .serving {
+    background: var(--accent) !important;
+    border-color: transparent;
+    box-shadow: 0 0 12px var(--accent), 0 0 24px color-mix(in oklch, var(--accent), black 20%);
+    background-image: none !important;
+}
+/* Ended sets as small chips following team */
+.theme-modern .ended-sets { display: flex; gap: 0.3em; }
+.theme-modern .ended {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.4em;
+    padding: 0.1em 0.35em;
+    border-radius: 0.5em;
+    background: rgba(30, 35, 60, 0.45);
+    background: oklch(30% 0.03 250 / 45%);
+    font-size: 0.55em;
+    font-weight: 800;
+}
+
+/* Lineup as two glass cards side-by-side anchored top-right */
+.theme-modern .lineup {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1vmax;
+    position: static; /* follow normal flow */
+    margin: 2vh auto 0; /* centered and below scoreboard */
+    max-width: 70vw; /* constrain width for nicer layout */
+    background: rgba(18, 22, 40, 0.65);
+    background: var(--bg-lineup-oklch);
+    color: var(--color-lineup);
+    padding: 0.75vmax 1vmax;
+    border-radius: 1vmax;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    backdrop-filter: blur(8px);
+}
+.theme-modern .home_team, .theme-modern .away_team {
+    display: block;
+}
+.theme-modern .team_name {
+    text-align: left;
+    font-size: 0.9em;
+    font-weight: 900;
+    margin: 0 0 0.4em 0;
+    border-bottom: 2px solid oklch(70% 0.02 250 / 40%);
+    padding-bottom: 0.2em;
+}
+.theme-modern .player { display: flex; align-items: baseline; gap: 0.5em; margin: 0.15em 0; }
+.theme-modern .number {
+    width: auto;
+    min-width: 2.2em;
+    text-align: center;
+    background: rgba(35, 40, 70, 0.50);
+    background: oklch(35% 0.06 250 / 50%);
+    border-radius: 0.5em;
+    padding: 0.05em 0.5em;
+    font-weight: 800;
+}
+.theme-modern .libero .number { background: color-mix(in oklch, var(--accent), white 20%); }
+.theme-modern .name { display: inline-block; }
+
+/* Highlight as centered toast at bottom */
+.theme-modern .highlight {
+    position: absolute;
+    bottom: 3vh;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(22, 26, 46, 0.80);
+    background: var(--bg-highlight-oklch);
+    color: var(--color-highlight);
+    padding: 0.6vmax 1vmax;
+    border-radius: 999px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    backdrop-filter: blur(8px);
+}
+.theme-modern .highlight_desc { font-size: 1em; font-weight: 900; margin-bottom: 0.1em; }
+.theme-modern .highlight_player { font-size: 0.9em; opacity: 0.9; }
+
+/* Override absolute positioning from index.html for modern theme */
+.theme-modern #scoreboard { position: static; }
