@@ -253,7 +253,7 @@ body {
 .theme-modern .serving {
     /* Show volleyball icon inside the accent ring to indicate serve */
     background-color: transparent;
-    background-image: url("volleyball.png");
+    background-image: url("volleyball_modern.png");
     background-position: center;
     background-repeat: no-repeat;
     background-size: 100% 100%;
