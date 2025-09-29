@@ -9,6 +9,11 @@
         const DOM_PARSER = new DOMParser();
         var current_scoreboard_xml;
         window.addEventListener('load', function() {
+            // Set theme from URL parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const theme = urlParams.get('theme') || 'default';
+            document.body.className = `theme-${theme}`;
+
             setInterval(() => {
                 fetch('scoreboard.xml?' + (new Date()).getTime())
                     .then((response) => {
@@ -42,14 +47,16 @@
     </style>
 </head>
 <body>
-    <div class="scoreboard_wrapper">
-        <div id="scoreboard"></div>
-    </div>
-    <div class="lineup_wrapper">
-        <div id="lineup"></div>
-    </div>
-    <div class="highlight_wrapper">
-        <div id="highlight"></div>
+    <div class="content_wrapper">
+        <div class="scoreboard_wrapper">
+            <div id="scoreboard"></div>
+        </div>
+        <div class="lineup_wrapper">
+            <div id="lineup"></div>
+        </div>
+        <div class="highlight_wrapper">
+            <div id="highlight"></div>
+        </div>
     </div>
 </body>
 </html>

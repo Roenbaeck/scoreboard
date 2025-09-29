@@ -1,12 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap');
 body {
     margin: 0;
+}
+.theme-default .content_wrapper {
     font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
 }
-.scoreboard_wrapper {
+.theme-default .scoreboard {
     font-size: 2.5vmax;
-}
-.scoreboard {
     margin: 3vh 3vw 3vh 3vw; 
     display: table;
     border-radius: 1vmax;
@@ -16,25 +16,25 @@ body {
     background: rgba(45, 29, 29, 0.5);
     background: oklch(25% 0.025 20 / 50%);
 }
-.home, .away {
+.theme-default .home, .theme-default .away {
     display: table-row;
 }
-.set, .color, .team, .serve, .score {
+.theme-default .set, .theme-default .color, .theme-default .team, .theme-default .serve, .theme-default .score {
     display: table-cell;
 }
-.team {
+.theme-default .team {
     position: relative;
     padding-left: 1vmax;
     padding-right: 2vmax;
     text-align: left;
 }
-.score {
+.theme-default .score {
     padding-left: 1vmax;
     padding-right: 0.5vmax;
     font-weight: bold;
     text-align: right;
 }
-.set {
+.theme-default .set {
     text-align: left;
     padding-left: 0.5vmax;
     padding-right: 1vmax;
@@ -42,22 +42,22 @@ body {
     color: black;
     color: oklch(0% 0 0);
 }
-.color {
+.theme-default .color {
     width: 1vmax;
 }
-.serve {
+.theme-default .serve {
     aspect-ratio: 1/1;
     min-width: 1em;
     width: 1em;    
 }
-.serving {
+.theme-default .serving {
     background-image: url("volleyball.png");
     background-position: center; 
     background-repeat: no-repeat; 
     background-size: contain; 
     aspect-ratio: 1 / 1;
 }
-.ended {
+.theme-default .ended {
     display: table-cell;
     padding-right: 0.5vmax;
     text-align: center;
@@ -66,21 +66,21 @@ body {
     color: white;
     color: oklch(100% 0 0);
 }
-.home .ended { 
+.theme-default .home .ended { 
     vertical-align: bottom; 
     padding-bottom: 0.25vmax;
 }
-.away .ended { 
+.theme-default .away .ended { 
     vertical-align: top; 
     padding-top: 0.25vmax;
 }
-.ended-sets {
+.theme-default .ended-sets {
     display: contents; 
 }
-.ended-sets .ended:first-child {
+.theme-default .ended-sets .ended:first-child {
     padding-left: 1vmax;
 }
-.lineup {
+.theme-default .lineup {
     display: table;
     position: absolute;
     top: 3vh;
@@ -93,33 +93,33 @@ body {
     padding: 0.5vmax;
     border-radius: 1vmax;
 }
-.home_team, .away_team {
+.theme-default .home_team, .theme-default .away_team {
     display: table-cell;
     padding: 0 1vmax;
     vertical-align: top;
 }
-.player {
+.theme-default .player {
     margin-bottom: 0.2em;
 }
-.libero {
+.theme-default .libero {
     font-style: italic;
 }
-.number {
+.theme-default .number {
     display: inline-block;
     width: 2em;
     text-align: right;
     margin-right: 0.5em;
 }
-.name {
+.theme-default .name {
     display: inline-block;
 }
-.team_name {
+.theme-default .team_name {
     font-size: 0.8em;
     text-align: center;
     margin: 0.5em 0;
     font-weight: bold;
 }
-.highlight {
+.theme-default .highlight {
     position: absolute;
     bottom: 3vh;
     right: 3vw;
@@ -132,10 +132,10 @@ body {
     border-radius: 1vmax;
     text-align: center;
 }
-.highlight_desc {
+.theme-default .highlight_desc {
     font-size: 0.9em;
     margin-bottom: 0.2em;
 }
-.highlight_player {
+.theme-default .highlight_player {
     font-size: 0.8em;
 }
