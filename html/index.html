@@ -21,17 +21,11 @@
                         else {
                             current_scoreboard_xml = scoreboard_xml;
                             var parsed_xml = DOM_PARSER.parseFromString(scoreboard_xml, 'text/xml');
-                            var scoreboard = parsed_xml.getElementById('scoreboard');
-                            if(scoreboard) {
-                                document.getElementById('scoreboard').replaceWith(scoreboard);
-                            }
-                            var lineup = parsed_xml.getElementById('lineup');
-                            if(lineup) {
-                                document.getElementById('lineup').replaceWith(lineup);
-                            }
-                            var highlight = parsed_xml.getElementById('highlight');
-                            if(highlight) {
-                                document.getElementById('highlight').replaceWith(highlight);
+                            for (const elementName of ['scoreboard', 'lineup', 'highlight']) {
+                                const element = parsed_xml.getElementById(elementName);
+                                if (element) {
+                                    document.getElementById(elementName).replaceWith(element);
+                                }
                             }
                         }
                     })
@@ -55,3 +49,4 @@
         <div id="highlight"></div>
     </div>
 </body>
+</html>
