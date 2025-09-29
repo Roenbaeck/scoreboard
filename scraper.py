@@ -309,6 +309,7 @@ def extract_match_state(api_data, team_color_name_map=None, force_lineup=False):
 
     # Check if match has started by looking at the first chronological event
     match_started = False
+    in_set = False
     if events:
         indexed = []
         for idx, ev in enumerate(events):
@@ -328,9 +329,24 @@ def extract_match_state(api_data, team_color_name_map=None, force_lineup=False):
         if first_event and first_event.get('startsMatch'):
             match_started = True
 
-    # Parse lineup if match not started or forced
+        # Check if currently in a set
+        for _, _, ev in reversed(indexed):
+            if ev.get('startsPeriod'):
+                in_set = True
+                break
+            elif ev.get('stopsPeriod'):
+                in_set = False
+                break
+
+    # Fallback: if scores are present, assume match has started
+    if not match_started:
+        current_score = gamestate.get('currentScore', {})
+        if current_score.get('homeGoals', 0) > 0 or current_score.get('awayGoals', 0) > 0:
+            match_started = True
+
+    # Parse lineup if match not started or not in a set
     lineup_data = None
-    if (force_lineup or not match_started) and 'lineup' in api_data:
+    if (force_lineup or not match_started or not in_set) and 'lineup' in api_data:
         lineup = api_data['lineup']
         home_lineup = []
         away_lineup = []
@@ -425,6 +441,7 @@ def extract_match_state(api_data, team_color_name_map=None, force_lineup=False):
         state['lineup'] = lineup_data
     state['matchStarted'] = match_started
     state['forceLineup'] = force_lineup
+    state['inSet'] = in_set
     # Attach completed set scores for overlay (list of dicts with homeGoals/awayGoals)
     try:
         state['setScores'] = list(gamestate.get('currentSetScores') or [])
@@ -516,7 +533,7 @@ def write_scoreboard_xml(state, output_path):
         xml_parts.append(f'        <div id="away_score" class="score">{away.get("points",0)}</div>')
     xml_parts.append('    </div>')  # close away div
     xml_parts.append('    </div>')  # close scoreboard div
-    if 'lineup' in state and (state.get('forceLineup', False) or not state.get('matchStarted', True)):
+    if 'lineup' in state and (state.get('forceLineup', False) or not state.get('matchStarted', True) or not state.get('inSet', False)):
         xml_parts.append('    <div id="lineup" class="lineup">')
         xml_parts.append('        <div class="home_team">')
         xml_parts.append(f'            <div id="home_team_name" class="team_name">{home.get("name","Home")}</div>')
