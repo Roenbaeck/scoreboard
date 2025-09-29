@@ -80,3 +80,39 @@ body {
 .ended-sets .ended:first-child {
     padding-left: 1vmax;
 }
+.lineup {
+    display: table;
+    position: absolute;
+    top: 3vh;
+    right: 3vw;
+    background: rgba(45, 29, 29, 0.5);
+    background: oklch(25% 0.025 20 / 50%);
+    color: white;
+    color: oklch(100% 0 0);
+    font-weight: bold;
+    padding: 0.5vmax;
+    border-radius: 1vmax;
+}
+.home_team, .away_team {
+    display: table-cell;
+    padding: 0 1vmax;
+    vertical-align: top;
+}
+.player {
+    margin-bottom: 0.2em;
+}
+.number {
+    display: inline-block;
+    width: 2em;
+    text-align: right;
+    margin-right: 0.5em;
+}
+.name {
+    display: inline-block;
+}
+.team_name {
+    font-size: 0.8em;
+    text-align: center;
+    margin: 0.5em 0;
+    font-weight: bold;
+}

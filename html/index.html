@@ -25,6 +25,10 @@
                             if(scoreboard) {
                                 document.getElementById('scoreboard').replaceWith(scoreboard);
                             }
+                            var lineup = doc.getElementById('lineup');
+                            if(lineup) {
+                                document.getElementById('lineup').replaceWith(lineup);
+                            }
                         }
                     })
             }, 1000);
@@ -39,5 +43,8 @@
 <body>
     <div class="scoreboard_wrapper">
         <div id="scoreboard"></div>
+    </div>
+    <div class="lineup_wrapper">
+        <div id="lineup"></div>
     </div>
 </body>

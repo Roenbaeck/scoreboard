@@ -229,7 +229,7 @@ def parse_volleyball_data(api_data, team_color_name_map=None):
         return f"An error occurred while parsing the data: {e}. Please check the JSON structure."
 
 
-def extract_match_state(api_data, team_color_name_map=None):
+def extract_match_state(api_data, team_color_name_map=None, force_lineup=False):
     """Return structured match state for scoreboard rendering.
 
     Returns dict with keys: home, away each containing id, name, color, sets, points.
@@ -307,6 +307,53 @@ def extract_match_state(api_data, team_color_name_map=None):
                 home_team_id, away_team_id = tids[0], tids[1]
                 home_team_name, away_team_name = seen[home_team_id], seen[away_team_id]
 
+    # Check if match has started by looking at the first chronological event
+    match_started = False
+    if events:
+        indexed = []
+        for idx, ev in enumerate(events):
+            ts = ev.get('created_at') or ev.get('createdAt')
+            if ts:
+                if ts.endswith('Z'):
+                    ts = ts[:-1] + '+00:00'
+                try:
+                    parsed_ts = datetime.fromisoformat(ts)
+                    indexed.append((parsed_ts, idx, ev))
+                except ValueError:
+                    indexed.append((None, idx, ev))
+            else:
+                indexed.append((None, idx, ev))
+        indexed.sort(key=lambda t: (t[0] is None, t[0] or datetime.min, t[1]))
+        first_event = indexed[0][2] if indexed else None
+        if first_event and first_event.get('startsMatch'):
+            match_started = True
+
+    # Parse lineup if match not started or forced
+    lineup_data = None
+    if (force_lineup or not match_started) and 'lineup' in api_data:
+        lineup = api_data['lineup']
+        home_lineup = []
+        away_lineup = []
+        for player in lineup:
+            web_team_id = player.get('webTeamId')
+            if player.get('type') == 'player':
+                player_str = f"{player.get('number', '')} {player.get('name', '')}".strip()
+                if player_str:
+                    if web_team_id == home_team_id:
+                        home_lineup.append(player_str)
+                    elif web_team_id == away_team_id:
+                        away_lineup.append(player_str)
+        # Sort lineups by jersey number
+        def sort_key(p):
+            try:
+                num = int(p.split()[0])
+                return num
+            except:
+                return 999
+        home_lineup.sort(key=sort_key)
+        away_lineup.sort(key=sort_key)
+        lineup_data = {'home': home_lineup, 'away': away_lineup}
+
     # Detect if match has a terminating event
     match_ended = any((e.get('stopsMatch') is True) for e in events) if isinstance(events, list) else False
     print (f"Match ended status: {'Yes' if match_ended else 'No'}")
@@ -374,6 +421,10 @@ def extract_match_state(api_data, team_color_name_map=None):
     }
     if match_ended:
         state['matchEnded'] = True
+    if lineup_data:
+        state['lineup'] = lineup_data
+    state['matchStarted'] = match_started
+    state['forceLineup'] = force_lineup
     # Attach completed set scores for overlay (list of dicts with homeGoals/awayGoals)
     try:
         state['setScores'] = list(gamestate.get('currentSetScores') or [])
@@ -436,12 +487,13 @@ def write_scoreboard_xml(state, output_path):
 
     # New order: set, color, team, serve, (ended sets), score
     xml_parts = [
-        '<div xmlns="http://www.w3.org/1999/xhtml" id="scoreboard" class="scoreboard">',
-        '    <div class="home">',
-        f'        <div id="home_set" class="set">{home.get("sets", 0)}</div>',
-        f'        <div id="home_color" class="color"{home_color_style}>{nbsp}</div>',
-        f'        <div id="home_team" class="team" contenteditable="true">{home.get("name","Home")}</div>',
-        f'        <div id="home_serve" class="{home_serve_class}">{nbsp}</div>'
+        '<div xmlns="http://www.w3.org/1999/xhtml">',
+        '    <div id="scoreboard" class="scoreboard">',
+        '        <div class="home">',
+        f'            <div id="home_set" class="set">{home.get("sets", 0)}</div>',
+        f'            <div id="home_color" class="color"{home_color_style}>{nbsp}</div>',
+        f'            <div id="home_team" class="team" contenteditable="true">{home.get("name","Home")}</div>',
+        f'            <div id="home_serve" class="{home_serve_class}">{nbsp}</div>'
     ]
     if home_ended_html:
         for line in home_ended_html.split('\n'):
@@ -463,6 +515,36 @@ def write_scoreboard_xml(state, output_path):
     if not match_ended_flag:
         xml_parts.append(f'        <div id="away_score" class="score">{away.get("points",0)}</div>')
     xml_parts.append('    </div>')  # close away div
+    xml_parts.append('    </div>')  # close scoreboard div
+    if 'lineup' in state and (state.get('forceLineup', False) or not state.get('matchStarted', True)):
+        xml_parts.append('    <div id="lineup" class="lineup">')
+        xml_parts.append('        <div class="home_team">')
+        xml_parts.append(f'            <div id="home_team_name" class="team_name">{home.get("name","Home")}</div>')
+        xml_parts.append('            <div id="home_lineup" class="home_lineup">')
+        for player in state['lineup']['home']:
+            parts = player.split(' ', 1)
+            number = parts[0] if parts else ''
+            name = parts[1] if len(parts) > 1 else ''
+            xml_parts.append('                <div class="player">')
+            xml_parts.append(f'                    <div class="number">{number}</div>')
+            xml_parts.append(f'                    <div class="name">{name}</div>')
+            xml_parts.append('                </div>')
+        xml_parts.append('            </div>')
+        xml_parts.append('        </div>')
+        xml_parts.append('        <div class="away_team">')
+        xml_parts.append(f'            <div id="away_team_name" class="team_name">{away.get("name","Away")}</div>')
+        xml_parts.append('            <div id="away_lineup" class="away_lineup">')
+        for player in state['lineup']['away']:
+            parts = player.split(' ', 1)
+            number = parts[0] if parts else ''
+            name = parts[1] if len(parts) > 1 else ''
+            xml_parts.append('                <div class="player">')
+            xml_parts.append(f'                    <div class="number">{number}</div>')
+            xml_parts.append(f'                    <div class="name">{name}</div>')
+            xml_parts.append('                </div>')
+        xml_parts.append('            </div>')
+        xml_parts.append('        </div>')
+        xml_parts.append('    </div>')
     xml_parts.append('</div>')
     xml_content = '\n'.join(xml_parts)
     tmp_path = output_path + '.tmp'
@@ -491,6 +573,7 @@ def main(argv=None):
     parser.add_argument("--output", default=os.path.join('html', 'scoreboard.xml'), help="Path to write scoreboard XML (default: html/scoreboard.xml)")
     parser.add_argument("--no-summary", action="store_true", help="Suppress textual summary output (useful in daemon mode)")
     parser.add_argument("--dump-json", help="If set, write the latest raw API JSON to this file for debugging home/away mapping.")
+    parser.add_argument("--force-lineup", action="store_true", help="Force display of lineups even if match has started.")
     args = parser.parse_args(argv)
 
     page_url = args.page_url.strip()
@@ -533,7 +616,7 @@ def main(argv=None):
             if not args.no_summary:
                 match_summary = parse_volleyball_data(api_data, team_color_map)
                 print(match_summary)
-            state = extract_match_state(api_data, team_color_map)
+            state = extract_match_state(api_data, team_color_map, force_lineup=args.force_lineup)
             if state:
                 write_scoreboard_xml(state, args.output)
                 print(f"Scoreboard written to {args.output}")
@@ -576,7 +659,7 @@ def main(argv=None):
                         json.dump(api_data, jf, ensure_ascii=False, indent=2)
                 except OSError:
                     pass
-            state = extract_match_state(api_data, team_color_map)
+            state = extract_match_state(api_data, team_color_map, force_lineup=args.force_lineup)
             if state:
                 if write_scoreboard_xml(state, args.output):
                     if cycles % 10 == 0:  # reduce chatter
