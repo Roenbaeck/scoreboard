@@ -20,14 +20,18 @@
                         }    
                         else {
                             current_scoreboard_xml = scoreboard_xml;
-                            var doc = DOM_PARSER.parseFromString(scoreboard_xml, 'text/xml');
-                            var scoreboard = doc.getElementById('scoreboard');
+                            var parsed_xml = DOM_PARSER.parseFromString(scoreboard_xml, 'text/xml');
+                            var scoreboard = parsed_xml.getElementById('scoreboard');
                             if(scoreboard) {
                                 document.getElementById('scoreboard').replaceWith(scoreboard);
                             }
-                            var lineup = doc.getElementById('lineup');
+                            var lineup = parsed_xml.getElementById('lineup');
                             if(lineup) {
                                 document.getElementById('lineup').replaceWith(lineup);
+                            }
+                            var highlight = parsed_xml.getElementById('highlight');
+                            if(highlight) {
+                                document.getElementById('highlight').replaceWith(highlight);
                             }
                         }
                     })
@@ -46,5 +50,8 @@
     </div>
     <div class="lineup_wrapper">
         <div id="lineup"></div>
+    </div>
+    <div class="highlight_wrapper">
+        <div id="highlight"></div>
     </div>
 </body>

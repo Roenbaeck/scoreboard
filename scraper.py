@@ -338,6 +338,15 @@ def extract_match_state(api_data, team_color_name_map=None, force_lineup=False):
                 in_set = False
                 break
 
+        # Find the most recent highlight event (e.g., ace or attack point)
+        highlight = None
+        last_event = indexed[-1][2] if indexed else None
+        if last_event and last_event.get('eventTypeId') in [470, 468] and last_event.get('person'):
+            highlight = {
+                'description': last_event.get('description', ''),
+                'player_name': last_event['person'].get('name', ''),
+                'player_number': last_event['person'].get('number', '')
+            }
     # Fallback: if scores are present, assume match has started
     if not match_started:
         current_score = gamestate.get('currentScore', {})
@@ -446,6 +455,8 @@ def extract_match_state(api_data, team_color_name_map=None, force_lineup=False):
     state['matchStarted'] = match_started
     state['forceLineup'] = force_lineup
     state['inSet'] = in_set
+    if highlight:
+        state['highlight'] = highlight
     # Attach completed set scores for overlay (list of dicts with homeGoals/awayGoals)
     try:
         state['setScores'] = list(gamestate.get('currentSetScores') or [])
@@ -562,6 +573,11 @@ def write_scoreboard_xml(state, output_path):
         xml_parts.append('            </div>')
         xml_parts.append('        </div>')
         xml_parts.append('    </div>')
+    if 'highlight' in state:
+        xml_parts.append('<div id="highlight" class="highlight">')
+        xml_parts.append(f'    <div class="highlight_desc">{state["highlight"]["description"]}</div>')
+        xml_parts.append(f'    <div class="highlight_player">{state["highlight"]["player_number"]} {state["highlight"]["player_name"]}</div>')
+        xml_parts.append('</div>')
     xml_parts.append('</div>')
     xml_content = '\n'.join(xml_parts)
     tmp_path = output_path + '.tmp'

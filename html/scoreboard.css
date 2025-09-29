@@ -119,3 +119,23 @@ body {
     margin: 0.5em 0;
     font-weight: bold;
 }
+.highlight {
+    position: absolute;
+    bottom: 3vh;
+    right: 3vw;
+    background: rgba(45, 29, 29, 0.5);
+    background: oklch(25% 0.025 20 / 50%);
+    color: white;
+    color: oklch(100% 0 0);
+    font-weight: bold;
+    padding: 0.5vmax;
+    border-radius: 1vmax;
+    text-align: center;
+}
+.highlight_desc {
+    font-size: 0.9em;
+    margin-bottom: 0.2em;
+}
+.highlight_player {
+    font-size: 0.8em;
+}
