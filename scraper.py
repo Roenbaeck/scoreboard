@@ -338,10 +338,13 @@ def extract_match_state(api_data, team_color_name_map=None, force_lineup=False):
                 in_set = False
                 break
 
-        # Find the most recent highlight event (e.g., ace or attack point)
+        # Find the most recent highlight event 
+        # 468 - Attack
+        # 469 - Block
+        # 470 - Service Ace
         highlight = None
         last_event = indexed[-1][2] if indexed else None
-        if last_event and last_event.get('eventTypeId') in [470, 468] and last_event.get('person'):
+        if last_event and last_event.get('eventTypeId') in [468, 469, 470] and last_event.get('person'):
             highlight = {
                 'description': last_event.get('description', ''),
                 'player_name': last_event['person'].get('name', ''),
