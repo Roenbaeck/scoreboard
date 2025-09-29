@@ -45,12 +45,6 @@ body {
 .color {
     width: 1vmax;
 }
-#home_color {
-    background: blue;
-}
-#away_color {
-    background: yellow;
-}
 .serve {
     aspect-ratio: 1/1;
     min-width: 1em;

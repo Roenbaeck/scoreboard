@@ -54,7 +54,7 @@ def get_api_url(url):
 def extract_team_colors(html_content):
     """Parse the original match page HTML to map team IDs to jersey colors and names.
 
-    Returns dict: { team_id: { 'color': '#RRGGBB', 'name': 'Team Name' } }
+    Returns dict: { team_id: { 'color': '#RRGGBB' or 'transparent', 'name': 'Team Name' } }
     """
     team_map = {}
     if not html_content:
@@ -71,7 +71,7 @@ def extract_team_colors(html_content):
         inner = m.group(3)
         # Find background color inside the anchor contents
         color_match = re.search(r'background-color:\s*([^;"\s]+)', inner, re.IGNORECASE)
-        color = color_match.group(1).upper() if color_match else None
+        color = color_match.group(1).upper() if color_match else 'transparent'
         # Derive a name by stripping tags & comments
         cleaned = re.sub(r'<!--.*?-->', ' ', inner, flags=re.DOTALL)
         cleaned = re.sub(r'<[^>]+>', ' ', cleaned)
@@ -83,12 +83,11 @@ def extract_team_colors(html_content):
         parts = cleaned.split()
         if len(parts) > 8:
             cleaned = ' '.join(parts[-8:])
-        if color:
-            team_map[team_id] = { 'color': color, 'name': cleaned }
+        team_map[team_id] = { 'color': color, 'name': cleaned }
     if team_map:
-        print(f"Extracted {len(team_map)} team color entries: " + ", ".join(f"{tid}:{info['color']}" for tid, info in team_map.items()))
+        print(f"Extracted {len(team_map)} team entries: " + ", ".join(f"{tid}:{info['color']}" for tid, info in team_map.items()))
     else:
-        print("No team color information could be extracted.")
+        print("No team information could be extracted.")
     return team_map
 
 def parse_volleyball_data(api_data, team_color_name_map=None):
@@ -431,12 +430,16 @@ def write_scoreboard_xml(state, output_path):
     if away_ended_html:
         away_ended_html = '<div class="ended-sets">\n        ' + away_ended_html + '\n        </div>'
 
+    # Conditionally include style for color divs if not transparent
+    home_color_style = f' style="background: rgb({hr}, {hg}, {hb});"' if home.get('color') != 'transparent' else ''
+    away_color_style = f' style="background: rgb({ar}, {ag}, {ab});"' if away.get('color') != 'transparent' else ''
+
     # New order: set, color, team, serve, (ended sets), score
     xml_parts = [
         '<div xmlns="http://www.w3.org/1999/xhtml" id="scoreboard" class="scoreboard">',
         '    <div class="home">',
         f'        <div id="home_set" class="set">{home.get("sets", 0)}</div>',
-        f'        <div id="home_color" class="color" style="background: rgb({hr}, {hg}, {hb});">{nbsp}</div>',
+        f'        <div id="home_color" class="color"{home_color_style}>{nbsp}</div>',
         f'        <div id="home_team" class="team" contenteditable="true">{home.get("name","Home")}</div>',
         f'        <div id="home_serve" class="{home_serve_class}">{nbsp}</div>'
     ]
@@ -450,7 +453,7 @@ def write_scoreboard_xml(state, output_path):
     xml_parts.append('    </div>')  # close home div
     xml_parts.append('    <div class="away">')
     xml_parts.append(f'        <div id="away_set" class="set">{away.get("sets", 0)}</div>')
-    xml_parts.append(f'        <div id="away_color" class="color" style="background: rgb({ar}, {ag}, {ab});">{nbsp}</div>')
+    xml_parts.append(f'        <div id="away_color" class="color"{away_color_style}>{nbsp}</div>')
     xml_parts.append(f'        <div id="away_team" class="team" contenteditable="true">{away.get("name","Away")}</div>')
     xml_parts.append(f'        <div id="away_serve" class="{away_serve_class}">{nbsp}</div>')
     if away_ended_html:
