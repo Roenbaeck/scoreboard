@@ -101,6 +101,9 @@ body {
 .player {
     margin-bottom: 0.2em;
 }
+.libero {
+    font-style: italic;
+}
 .number {
     display: inline-block;
     width: 2em;

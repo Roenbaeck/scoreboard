@@ -353,16 +353,20 @@ def extract_match_state(api_data, team_color_name_map=None, force_lineup=False):
         for player in lineup:
             web_team_id = player.get('webTeamId')
             if player.get('type') == 'player':
-                player_str = f"{player.get('number', '')} {player.get('name', '')}".strip()
-                if player_str:
+                player_info = {
+                    'number': player.get('number', ''),
+                    'name': player.get('name', ''),
+                    'libero': player.get('libero', False)
+                }
+                if player_info['number'] or player_info['name']:
                     if web_team_id == home_team_id:
-                        home_lineup.append(player_str)
+                        home_lineup.append(player_info)
                     elif web_team_id == away_team_id:
-                        away_lineup.append(player_str)
+                        away_lineup.append(player_info)
         # Sort lineups by jersey number
         def sort_key(p):
             try:
-                num = int(p.split()[0])
+                num = int(p['number'])
                 return num
             except:
                 return 999
@@ -539,12 +543,10 @@ def write_scoreboard_xml(state, output_path):
         xml_parts.append(f'            <div id="home_team_name" class="team_name">{home.get("name","Home")}</div>')
         xml_parts.append('            <div id="home_lineup" class="home_lineup">')
         for player in state['lineup']['home']:
-            parts = player.split(' ', 1)
-            number = parts[0] if parts else ''
-            name = parts[1] if len(parts) > 1 else ''
-            xml_parts.append('                <div class="player">')
-            xml_parts.append(f'                    <div class="number">{number}</div>')
-            xml_parts.append(f'                    <div class="name">{name}</div>')
+            libero_class = ' libero' if player.get('libero') else ''
+            xml_parts.append(f'                <div class="player{libero_class}">')
+            xml_parts.append(f'                    <div class="number">{player["number"]}</div>')
+            xml_parts.append(f'                    <div class="name">{player["name"]}</div>')
             xml_parts.append('                </div>')
         xml_parts.append('            </div>')
         xml_parts.append('        </div>')
@@ -552,12 +554,10 @@ def write_scoreboard_xml(state, output_path):
         xml_parts.append(f'            <div id="away_team_name" class="team_name">{away.get("name","Away")}</div>')
         xml_parts.append('            <div id="away_lineup" class="away_lineup">')
         for player in state['lineup']['away']:
-            parts = player.split(' ', 1)
-            number = parts[0] if parts else ''
-            name = parts[1] if len(parts) > 1 else ''
-            xml_parts.append('                <div class="player">')
-            xml_parts.append(f'                    <div class="number">{number}</div>')
-            xml_parts.append(f'                    <div class="name">{name}</div>')
+            libero_class = ' libero' if player.get('libero') else ''
+            xml_parts.append(f'                <div class="player{libero_class}">')
+            xml_parts.append(f'                    <div class="number">{player["number"]}</div>')
+            xml_parts.append(f'                    <div class="name">{player["name"]}</div>')
             xml_parts.append('                </div>')
         xml_parts.append('            </div>')
         xml_parts.append('        </div>')
