@@ -8,6 +8,11 @@ from datetime import datetime
 from urllib.parse import urlparse, parse_qs
 from html import unescape
 
+# Common browser User-Agent to avoid detection
+HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+}
+
 def get_api_url(url):
     """Fetch HTML for the page and extract the Profixio match API URL plus raw HTML.
 
@@ -17,7 +22,7 @@ def get_api_url(url):
     html_content = ''
     try:
         print(f"Attempting to fetch content from: {url}")
-        response = requests.get(url)
+        response = requests.get(url, headers=HEADERS)
         response.raise_for_status()
         html_content = response.text
         print("Successfully fetched HTML content.")
@@ -639,7 +644,7 @@ def main(argv=None):
 
     if not args.daemon:
         try:
-            api_response = requests.get(api_url)
+            api_response = requests.get(api_url, headers=HEADERS)
             api_response.raise_for_status()
             api_data = api_response.json()
             if args.dump_json:
@@ -680,7 +685,7 @@ def main(argv=None):
             last_page_refresh = now
 
         try:
-            api_response = requests.get(api_url, timeout=10)
+            api_response = requests.get(api_url, timeout=10, headers=HEADERS)
             if api_response.status_code == 403:
                 # Possibly expired signature; force refresh next loop
                 print("[Daemon] API returned 403; forcing page refresh next cycle.")
@@ -700,6 +705,9 @@ def main(argv=None):
                 if write_scoreboard_xml(state, args.output):
                     if cycles % 10 == 0:  # reduce chatter
                         print(f"[Daemon] Updated scoreboard (home {state['home']['points']} - away {state['away']['points']})")
+                if state.get('matchEnded'):
+                    print("[Daemon] Match has ended. Stopping daemon.")
+                    break
             else:
                 print("[Daemon] Could not extract match state from API data.")
         except requests.exceptions.RequestException as e:
