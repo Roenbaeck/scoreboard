@@ -167,11 +167,12 @@ body {
 /* === Modern theme: bold, horizontal bar with glass effect and accent colors === */
 .theme-modern {
     --accent: oklch(75% 0.18 260); /* electric blue */
-    --bg-scoreboard: oklch(20% 0.03 250 / 65%);
-    --bg-scoreboard-oklch: oklch(20% 0.03 250 / 65%);
+    /* Slightly higher alpha to compensate for removed blur */
+    --bg-scoreboard: oklch(20% 0.03 250 / 75%);
+    --bg-scoreboard-oklch: oklch(20% 0.03 250 / 75%);
     --color-text: oklch(98% 0 0);
-    --bg-lineup: oklch(20% 0.03 250 / 65%);
-    --bg-lineup-oklch: oklch(20% 0.03 250 / 65%);
+    --bg-lineup: oklch(20% 0.03 250 / 75%);
+    --bg-lineup-oklch: oklch(20% 0.03 250 / 75%);
     --color-lineup: oklch(98% 0 0);
     --bg-highlight: oklch(25% 0.05 250 / 80%);
     --bg-highlight-oklch: oklch(25% 0.05 250 / 80%);
@@ -190,7 +191,6 @@ body {
     background: var(--bg-scoreboard-oklch);
     color: var(--color-text);
     box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-    backdrop-filter: blur(8px);
 }
 .theme-modern .home, .theme-modern .away {
     display: flex;
@@ -290,7 +290,6 @@ body {
     padding: 0.75vmax 1vmax;
     border-radius: 1vmax;
     box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-    backdrop-filter: blur(8px);
 }
 .theme-modern .home_team, .theme-modern .away_team {
     display: block;
@@ -329,8 +328,9 @@ body {
     padding: 0.6vmax 1vmax;
     border-radius: 999px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-    backdrop-filter: blur(8px);
 }
+
+/* Backdrop blur removed by default for streaming-friendly alpha compositing. */
 .theme-modern .highlight_desc { font-size: 1em; font-weight: 900; margin-bottom: 0.1em; }
 .theme-modern .highlight_player { font-size: 0.9em; opacity: 0.9; }
 
