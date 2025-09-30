@@ -397,8 +397,9 @@ def extract_match_state(api_data, team_color_name_map=None, force_lineup=False):
                         # If current entry has a number but existing doesn't, update
                         if player_info['number'] and not existing['number']:
                             existing['number'] = player_info['number']
-                        # Always update libero status (in case it changed)
-                        existing['libero'] = player_info['libero']
+                        # Preserve libero=True if any occurrence marks the player as libero
+                        # Avoid later false values from overriding a true earlier mark
+                        existing['libero'] = bool(existing.get('libero')) or bool(player_info.get('libero'))
         
         # Convert dictionaries back to lists
         home_lineup = list(home_lineup_dict.values())
