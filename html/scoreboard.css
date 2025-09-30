@@ -10,7 +10,6 @@ body {
    ============================================================= */
 
 /* Base positioning and typography for default theme */
-.theme-default #scoreboard { position: absolute; }
 .theme-default .content_wrapper {
     font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
 }

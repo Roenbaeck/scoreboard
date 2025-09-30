@@ -2,6 +2,7 @@
     touch-action: manipulation;
 }
 body {
+    margin: 0;
     height: 110vh;
     overflow-y: scroll;
     text-align: center;
