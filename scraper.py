@@ -365,21 +365,45 @@ def extract_match_state(api_data, team_color_name_map=None, force_lineup=False):
     lineup_data = None
     if (force_lineup or not match_started or not in_set) and 'lineup' in api_data:
         lineup = api_data['lineup']
-        home_lineup = []
-        away_lineup = []
+        home_lineup_dict = {}  # Track unique players by personId
+        away_lineup_dict = {}
+        
         for player in lineup:
             web_team_id = player.get('webTeamId')
-            if player.get('type') == 'player':
+            person_id = player.get('personId')
+            
+            if player.get('type') == 'player' and person_id:
                 player_info = {
                     'number': player.get('number', ''),
                     'name': player.get('name', ''),
                     'libero': player.get('libero', False)
                 }
-                if player_info['number'] or player_info['name']:
+                
+                # Only process if we have at least a name
+                if player_info['name']:
                     if web_team_id == home_team_id:
-                        home_lineup.append(player_info)
+                        target_dict = home_lineup_dict
                     elif web_team_id == away_team_id:
-                        away_lineup.append(player_info)
+                        target_dict = away_lineup_dict
+                    else:
+                        continue
+                    
+                    # If we haven't seen this personId before, add them
+                    if person_id not in target_dict:
+                        target_dict[person_id] = player_info
+                    else:
+                        # Update existing player info, preferring entries with jersey numbers
+                        existing = target_dict[person_id]
+                        # If current entry has a number but existing doesn't, update
+                        if player_info['number'] and not existing['number']:
+                            existing['number'] = player_info['number']
+                        # Always update libero status (in case it changed)
+                        existing['libero'] = player_info['libero']
+        
+        # Convert dictionaries back to lists
+        home_lineup = list(home_lineup_dict.values())
+        away_lineup = list(away_lineup_dict.values())
+        
         # Sort lineups by jersey number
         def sort_key(p):
             try:
