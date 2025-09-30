@@ -28,11 +28,10 @@
                             var parsed_xml = DOM_PARSER.parseFromString(scoreboard_xml, 'text/xml');
                             for (const elementName of ['scoreboard', 'lineup', 'highlight']) {
                                 const element = parsed_xml.getElementById(elementName);
-                                const target = document.getElementById(elementName);
+                                const target = document.getElementById(elementName + '_wrapper');
+                                target.replaceChildren();
                                 if (element) {
-                                    target.replaceWith(element);
-                                } else {
-                                    target.replaceChildren();
+                                    target.appendChild(element);
                                 }
                             }
                         }
@@ -42,16 +41,10 @@
     </script>    
 </head>
 <body>
-    <div class="content_wrapper">
-        <div class="scoreboard_wrapper">
-            <div id="scoreboard"></div>
-        </div>
-        <div class="lineup_wrapper">
-            <div id="lineup"></div>
-        </div>
-        <div class="highlight_wrapper">
-            <div id="highlight"></div>
-        </div>
+    <div id="content_wrapper" class="content_wrapper">
+        <div id="scoreboard_wrapper" class="scoreboard_wrapper"></div>
+        <div id="lineup_wrapper" class="lineup_wrapper"></div>
+        <div id="highlight_wrapper" class="highlight_wrapper"></div>
     </div>
 </body>
 </html>

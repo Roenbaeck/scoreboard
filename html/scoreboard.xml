@@ -1,98 +1,16 @@
-<div xmlns="http://www.w3.org/1999/xhtml">
-    <div id="scoreboard" class="scoreboard">
-        <div class="home">
-            <div id="home_set" class="set">2</div>
-            <div id="home_color" class="color" style="background: rgb(0, 0, 0);"> </div>
-            <div id="home_team" class="team" contenteditable="true">Södermalms VBK - DF Lions</div>
-            <div id="home_serve" class="serve serving"> </div>
-        <div class="ended-sets">
-        <div id="home_ended_1" class="ended" data-set="1">18</div>
-        <div id="home_ended_2" class="ended" data-set="2">25</div>
-        <div id="home_ended_3" class="ended" data-set="3">16</div>
-        </div>
-    </div>
-    <div class="away">
-        <div id="away_set" class="set">1</div>
-        <div id="away_color" class="color" style="background: rgb(255, 0, 0);"> </div>
-        <div id="away_team" class="team" contenteditable="true">Täby Volley</div>
-        <div id="away_serve" class="serve"> </div>
-        <div class="ended-sets">
-        <div id="away_ended_1" class="ended" data-set="1">25</div>
-        <div id="away_ended_2" class="ended" data-set="2">20</div>
-        <div id="away_ended_3" class="ended" data-set="3">14</div>
-        </div>
-    </div>
-    </div>
-    <div id="lineup" class="lineup">
-        <div class="home_team">
-            <div id="home_team_name" class="team_name">Södermalms VBK - DF Lions</div>
-            <div id="home_lineup" class="home_lineup">
-                <div class="player">
-                    <div class="number">7</div>
-                    <div class="name">Elizabeth Suprun</div>
+<div xmlns="http://www.w3.org/1999/xhtml" id="scoreboard" class="scoreboard" style="top: 0px; left: 0px;">
+                <div class="home">
+                    <div id="home_set" class="set">1</div>
+                    <div id="home_color" class="color" style="background: rgb(255, 180, 63);"> </div>
+                    <div id="home_team" class="team" contenteditable="true">Home team</div>
+                    <div id="home_serve" class="serve serving"> </div>
+                    <div id="home_score" class="score">4</div>
                 </div>
-                <div class="player">
-                    <div class="number">9</div>
-                    <div class="name">Niat Tesfay</div>
-                </div>
-                <div class="player">
-                    <div class="number">13</div>
-                    <div class="name">Alyssa Höijer</div>
-                </div>
-                <div class="player">
-                    <div class="number">15</div>
-                    <div class="name">Laura Rydberg Martinez De Ubago</div>
-                </div>
-                <div class="player">
-                    <div class="number">23</div>
-                    <div class="name">Etta Hammarström</div>
-                </div>
-                <div class="player">
-                    <div class="number">29</div>
-                    <div class="name">Inez Hoyles</div>
-                </div>
-                <div class="player">
-                    <div class="number">31</div>
-                    <div class="name">Ziggy Lindroth Normelli</div>
+                <div class="away">
+                    <div id="away_set" class="set">0</div>
+                    <div id="away_color" class="color" style="background: rgb(244, 164, 192);"> </div>
+                    <div id="away_team" class="team" contenteditable="true">Away team</div>
+                    <div id="away_serve" class="serve"> </div>
+                    <div id="away_score" class="score">2</div>
                 </div>
             </div>
-        </div>
-        <div class="away_team">
-            <div id="away_team_name" class="team_name">Täby Volley</div>
-            <div id="away_lineup" class="away_lineup">
-                <div class="player">
-                    <div class="number">4</div>
-                    <div class="name">Nora Nejdeberg</div>
-                </div>
-                <div class="player">
-                    <div class="number">9</div>
-                    <div class="name">Agatha Miranda Rosemberg</div>
-                </div>
-                <div class="player">
-                    <div class="number">10</div>
-                    <div class="name">Tindra Gyllenberg</div>
-                </div>
-                <div class="player">
-                    <div class="number">12</div>
-                    <div class="name">Elin Lilja</div>
-                </div>
-                <div class="player">
-                    <div class="number">15</div>
-                    <div class="name">Laura Lauenborg Blomberg</div>
-                </div>
-                <div class="player">
-                    <div class="number">16</div>
-                    <div class="name">Gabija Juodelyte</div>
-                </div>
-                <div class="player">
-                    <div class="number">21</div>
-                    <div class="name">Frida Lundgren</div>
-                </div>
-                <div class="player">
-                    <div class="number">39</div>
-                    <div class="name">Meja Bergman-Haag</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
