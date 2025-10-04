@@ -1,25 +1,77 @@
 <div xmlns="http://www.w3.org/1999/xhtml">
     <div id="scoreboard" class="scoreboard">
         <div class="home">
-            <div id="home_set" class="set">1</div>
-            <div id="home_color" class="color" style="background: rgb(0, 0, 0);"> </div>
-            <div id="home_team" class="team" contenteditable="true">KFUM Eskilstuna Volley</div>
+            <div id="home_set" class="set">0</div>
+            <div id="home_color" class="color" style="background: rgb(128, 0, 0);"> </div>
+            <div id="home_team" class="team" contenteditable="true">Sollentuna VK D</div>
             <div id="home_serve" class="serve"> </div>
-        <div class="ended-sets">
-        <div id="home_ended_1" class="ended" data-set="1">25</div>
-        <div id="home_ended_2" class="ended" data-set="2">14</div>
-        </div>
         <div id="home_score" class="score">0</div>
     </div>
     <div class="away">
-        <div id="away_set" class="set">1</div>
-        <div id="away_color" class="color" style="background: rgb(255, 255, 0);"> </div>
-        <div id="away_team" class="team" contenteditable="true">Södertelge VBK D</div>
-        <div id="away_serve" class="serve serving"> </div>
-        <div class="ended-sets">
-        <div id="away_ended_1" class="ended" data-set="1">23</div>
-        <div id="away_ended_2" class="ended" data-set="2">25</div>
+        <div id="away_set" class="set">0</div>
+        <div id="away_color" class="color" style="background: rgb(255, 0, 0);"> </div>
+        <div id="away_team" class="team" contenteditable="true">Elden VBK</div>
+        <div id="away_serve" class="serve"> </div>
+        <div id="away_score" class="score">0</div>
+    </div>
+    <div id="lineup" class="lineup">
+        <div class="home_team">
+            <div id="home_team_name" class="team_name">Sollentuna VK D</div>
+            <div id="home_lineup" class="home_lineup">
+                <div class="player">
+                    <div class="number">31</div>
+                    <div class="name">Hilma Bergström</div>
+                </div>
+                <div class="player">
+                    <div class="number">32</div>
+                    <div class="name">Saga Winkiel</div>
+                </div>
+                <div class="player">
+                    <div class="number">33</div>
+                    <div class="name">Estelle Hammar</div>
+                </div>
+                <div class="player">
+                    <div class="number">34</div>
+                    <div class="name">Alice Fransson Nordh</div>
+                </div>
+                <div class="player">
+                    <div class="number">35</div>
+                    <div class="name">Sofia Riccio Caron Malucelli</div>
+                </div>
+                <div class="player">
+                    <div class="number">36</div>
+                    <div class="name">Rebecca Altun</div>
+                </div>
+                <div class="player">
+                    <div class="number">37</div>
+                    <div class="name">Anahita Velander Rabiei</div>
+                </div>
+                <div class="player">
+                    <div class="number">39</div>
+                    <div class="name">Alexia-Mia Eguez Veliz</div>
+                </div>
+                <div class="player libero">
+                    <div class="number">43</div>
+                    <div class="name">Mollie Hedström</div>
+                </div>
+                <div class="player">
+                    <div class="number">45</div>
+                    <div class="name">Siena Goscinski Bautista</div>
+                </div>
+                <div class="player">
+                    <div class="number">48</div>
+                    <div class="name">Alice Maidell</div>
+                </div>
+                <div class="player libero">
+                    <div class="number">49</div>
+                    <div class="name">Linn Ellingsson</div>
+                </div>
+            </div>
         </div>
-        <div id="away_score" class="score">1</div>
+        <div class="away_team">
+            <div id="away_team_name" class="team_name">Elden VBK</div>
+            <div id="away_lineup" class="away_lineup">
+            </div>
+        </div>
     </div>
 </div>

@@ -454,6 +454,10 @@ def extract_match_state(api_data, team_color_name_map=None, force_lineup=False):
     if not in_set:
         if current_home_points > 0 or current_away_points > 0:
             in_set = True
+    
+    # Additional fallback: if there are completed sets and current scores are 0-0, we're between sets
+    if (home_sets_won + away_sets_won) > 0 and current_home_points == 0 and current_away_points == 0:
+        in_set = False
 
     # Determine serving team: prefer correct key 'teamIdServing' (observed in API), fallback to legacy 'servingTeamId'
     serving_team_id = None
@@ -517,7 +521,7 @@ def hex_to_rgb_tuple(hex_color):
         return (128, 128, 128)
 
 
-def write_scoreboard_xml(state, output_path):
+def write_scoreboard_xml(state, output_path, show_ended_sets=False):
     """Write (atomically) the scoreboard XML overlay file based on match state."""
     if not state:
         return False
@@ -540,14 +544,15 @@ def write_scoreboard_xml(state, output_path):
     # We'll render each completed set's score for home & away respectively.
     home_ended_fragments = []
     away_ended_fragments = []
-    for idx, s in enumerate(set_scores, start=1):
-        hgs = s.get('homeGoals')
-        ags = s.get('awayGoals')
-        # Skip if values missing
-        if hgs is None or ags is None:
-            continue
-        home_ended_fragments.append(f'<div id="home_ended_{idx}" class="ended" data-set="{idx}">{hgs}</div>')
-        away_ended_fragments.append(f'<div id="away_ended_{idx}" class="ended" data-set="{idx}">{ags}</div>')
+    if show_ended_sets:
+        for idx, s in enumerate(set_scores, start=1):
+            hgs = s.get('homeGoals')
+            ags = s.get('awayGoals')
+            # Skip if values missing
+            if hgs is None or ags is None:
+                continue
+            home_ended_fragments.append(f'<div id="home_ended_{idx}" class="ended" data-set="{idx}">{hgs}</div>')
+            away_ended_fragments.append(f'<div id="away_ended_{idx}" class="ended" data-set="{idx}">{ags}</div>')
 
     home_ended_html = '\n        '.join(home_ended_fragments)
     away_ended_html = '\n        '.join(away_ended_fragments)
@@ -600,10 +605,16 @@ def write_scoreboard_xml(state, output_path):
         elif highlight_team_id == away_team_id:
             highlight_class += ' away-highlight'
         xml_parts.append(f'    <div id="highlight" class="{highlight_class}">')
-        xml_parts.append(f'        <div class="highlight_desc">{state["highlight"]["description"]}</div>')
-        xml_parts.append(f'        <div class="highlight_player">{state["highlight"]["player_number"]} {state["highlight"]["player_name"]}</div>')
+        xml_parts.append(f'        <div class="highlight-desc">{state["highlight"]["description"]}</div>')
+        xml_parts.append(f'        <div class="highlight-player">{state["highlight"]["player_number"]} {state["highlight"]["player_name"]}</div>')
         xml_parts.append('    </div>')
-    if 'lineup' in state and (state.get('forceLineup', False) or not state.get('matchStarted', True) or not state.get('inSet', False)):
+    # Check if we're between sets (current scores are 0-0 and there are completed sets)
+    set_scores = state.get('setScores') or []
+    between_sets = (len(set_scores) > 0 and 
+                   state.get('home', {}).get('points', 0) == 0 and 
+                   state.get('away', {}).get('points', 0) == 0)
+    
+    if 'lineup' in state and (state.get('forceLineup', False) or not state.get('matchStarted', True) or not state.get('inSet', False) or between_sets):
         xml_parts.append('    <div id="lineup" class="lineup">')
         xml_parts.append('        <div class="home_team">')
         xml_parts.append(f'            <div id="home_team_name" class="team_name">{home.get("name","Home")}</div>')
@@ -657,6 +668,7 @@ def main(argv=None):
     parser.add_argument("--no-summary", action="store_true", help="Suppress textual summary output (useful in daemon mode)")
     parser.add_argument("--dump-json", help="If set, write the latest raw API JSON to this file for debugging home/away mapping.")
     parser.add_argument("--force-lineup", action="store_true", help="Force display of lineups even if match has started.")
+    parser.add_argument("--show-ended-sets", action="store_true", help="Show scores from previously completed sets.")
     args = parser.parse_args(argv)
 
     page_url = args.page_url.strip()
@@ -701,7 +713,7 @@ def main(argv=None):
                 print(match_summary)
             state = extract_match_state(api_data, team_color_map, force_lineup=args.force_lineup)
             if state:
-                write_scoreboard_xml(state, args.output)
+                write_scoreboard_xml(state, args.output, args.show_ended_sets)
                 print(f"Scoreboard written to {args.output}")
         except requests.exceptions.RequestException as e:
             print(f"Error fetching API data: {e}")
@@ -744,7 +756,7 @@ def main(argv=None):
                     pass
             state = extract_match_state(api_data, team_color_map, force_lineup=args.force_lineup)
             if state:
-                if write_scoreboard_xml(state, args.output):
+                if write_scoreboard_xml(state, args.output, args.show_ended_sets):
                     if cycles % 10 == 0:  # reduce chatter
                         print(f"[Daemon] Updated scoreboard (home {state['home']['points']} - away {state['away']['points']})")
                 if state.get('matchEnded'):
