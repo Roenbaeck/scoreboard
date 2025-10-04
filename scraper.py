@@ -315,6 +315,7 @@ def extract_match_state(api_data, team_color_name_map=None, force_lineup=False):
     # Check if match has started by looking at the first chronological event
     match_started = False
     in_set = False
+    highlight = None
     if events:
         indexed = []
         for idx, ev in enumerate(events):
@@ -347,13 +348,13 @@ def extract_match_state(api_data, team_color_name_map=None, force_lineup=False):
         # 468 - Attack
         # 469 - Block
         # 470 - Service Ace
-        highlight = None
         last_event = indexed[-1][2] if indexed else None
         if last_event and last_event.get('eventTypeId') in [468, 469, 470] and last_event.get('person'):
             highlight = {
                 'description': last_event.get('description', ''),
                 'player_name': last_event['person'].get('name', ''),
-                'player_number': last_event['person'].get('number', '')
+                'player_number': last_event['person'].get('number', ''),
+                'team_id': last_event.get('teamId')
             }
     # Fallback: if scores are present, assume match has started
     if not match_started:
@@ -418,7 +419,6 @@ def extract_match_state(api_data, team_color_name_map=None, force_lineup=False):
 
     # Detect if match has a terminating event
     match_ended = any((e.get('stopsMatch') is True) for e in events) if isinstance(events, list) else False
-    print (f"Match ended status: {'Yes' if match_ended else 'No'}")
 
     # Sets won
     try:
@@ -449,6 +449,11 @@ def extract_match_state(api_data, team_color_name_map=None, force_lineup=False):
         cs = latest.get('currentScore', {})
         current_home_points = cs.get('home', 0)
         current_away_points = cs.get('away', 0)
+
+    # Fallback: if points are present, assume in a set
+    if not in_set:
+        if current_home_points > 0 or current_away_points > 0:
+            in_set = True
 
     # Determine serving team: prefer correct key 'teamIdServing' (observed in API), fallback to legacy 'servingTeamId'
     serving_team_id = None
@@ -518,12 +523,19 @@ def write_scoreboard_xml(state, output_path):
         return False
     home = state['home']
     away = state['away']
+    home_team_id = home.get('id')
+    away_team_id = away.get('id')
     hr, hg, hb = hex_to_rgb_tuple(home.get('color'))
     ar, ag, ab = hex_to_rgb_tuple(away.get('color'))
     home_serve_class = 'serve serving' if home.get('serving') else 'serve'
     away_serve_class = 'serve serving' if away.get('serving') else 'serve'
     nbsp = '\u00A0'
     set_scores = state.get('setScores') or []
+    # Only include completed sets (exclude current ongoing set)
+    home_sets_won = home.get('sets', 0)
+    away_sets_won = away.get('sets', 0)
+    completed_sets = home_sets_won + away_sets_won
+    set_scores = set_scores[:completed_sets]
     # Build ended set score spans (completed sets). We assume provided order is chronological.
     # We'll render each completed set's score for home & away respectively.
     home_ended_fragments = []
@@ -579,8 +591,18 @@ def write_scoreboard_xml(state, output_path):
                 xml_parts.append('        ' + line.strip())
     if not match_ended_flag:
         xml_parts.append(f'        <div id="away_score" class="score">{away.get("points",0)}</div>')
-    xml_parts.append('    </div>')  # close away div
     xml_parts.append('    </div>')  # close scoreboard div
+    if 'highlight' in state:
+        highlight_class = 'highlight'
+        highlight_team_id = state['highlight'].get('team_id')
+        if highlight_team_id == home_team_id:
+            highlight_class += ' home-highlight'
+        elif highlight_team_id == away_team_id:
+            highlight_class += ' away-highlight'
+        xml_parts.append(f'    <div id="highlight" class="{highlight_class}">')
+        xml_parts.append(f'        <div class="highlight_desc">{state["highlight"]["description"]}</div>')
+        xml_parts.append(f'        <div class="highlight_player">{state["highlight"]["player_number"]} {state["highlight"]["player_name"]}</div>')
+        xml_parts.append('    </div>')
     if 'lineup' in state and (state.get('forceLineup', False) or not state.get('matchStarted', True) or not state.get('inSet', False)):
         xml_parts.append('    <div id="lineup" class="lineup">')
         xml_parts.append('        <div class="home_team">')
@@ -606,11 +628,6 @@ def write_scoreboard_xml(state, output_path):
         xml_parts.append('            </div>')
         xml_parts.append('        </div>')
         xml_parts.append('    </div>')
-    if 'highlight' in state:
-        xml_parts.append('<div id="highlight" class="highlight">')
-        xml_parts.append(f'    <div class="highlight_desc">{state["highlight"]["description"]}</div>')
-        xml_parts.append(f'    <div class="highlight_player">{state["highlight"]["player_number"]} {state["highlight"]["player_name"]}</div>')
-        xml_parts.append('</div>')
     xml_parts.append('</div>')
     xml_content = '\n'.join(xml_parts)
     tmp_path = output_path + '.tmp'

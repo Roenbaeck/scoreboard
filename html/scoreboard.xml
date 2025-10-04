@@ -1,16 +1,25 @@
-<div xmlns="http://www.w3.org/1999/xhtml" id="scoreboard" class="scoreboard" style="top: 0px; left: 0px;">
-                <div class="home">
-                    <div id="home_set" class="set">1</div>
-                    <div id="home_color" class="color" style="background: rgb(255, 180, 63);"> </div>
-                    <div id="home_team" class="team" contenteditable="true">Home team</div>
-                    <div id="home_serve" class="serve serving"> </div>
-                    <div id="home_score" class="score">4</div>
-                </div>
-                <div class="away">
-                    <div id="away_set" class="set">0</div>
-                    <div id="away_color" class="color" style="background: rgb(244, 164, 192);"> </div>
-                    <div id="away_team" class="team" contenteditable="true">Away team</div>
-                    <div id="away_serve" class="serve"> </div>
-                    <div id="away_score" class="score">2</div>
-                </div>
-            </div>
+<div xmlns="http://www.w3.org/1999/xhtml">
+    <div id="scoreboard" class="scoreboard">
+        <div class="home">
+            <div id="home_set" class="set">1</div>
+            <div id="home_color" class="color" style="background: rgb(0, 0, 0);"> </div>
+            <div id="home_team" class="team" contenteditable="true">KFUM Eskilstuna Volley</div>
+            <div id="home_serve" class="serve"> </div>
+        <div class="ended-sets">
+        <div id="home_ended_1" class="ended" data-set="1">25</div>
+        <div id="home_ended_2" class="ended" data-set="2">14</div>
+        </div>
+        <div id="home_score" class="score">0</div>
+    </div>
+    <div class="away">
+        <div id="away_set" class="set">1</div>
+        <div id="away_color" class="color" style="background: rgb(255, 255, 0);"> </div>
+        <div id="away_team" class="team" contenteditable="true">Södertelge VBK D</div>
+        <div id="away_serve" class="serve serving"> </div>
+        <div class="ended-sets">
+        <div id="away_ended_1" class="ended" data-set="1">23</div>
+        <div id="away_ended_2" class="ended" data-set="2">25</div>
+        </div>
+        <div id="away_score" class="score">1</div>
+    </div>
+</div>
