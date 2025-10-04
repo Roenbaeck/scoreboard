@@ -335,6 +335,19 @@ def extract_match_state(api_data, team_color_name_map=None, force_lineup=False):
         if first_event and first_event.get('startsMatch'):
             match_started = True
 
+        # Additional check: if teamIdServing is present, match has started
+        if not match_started and gamestate.get('teamIdServing'):
+            match_started = True
+
+        # Check for events that indicate match has started
+        for _, _, ev in indexed:
+            if ev.get('startsMatch'):
+                match_started = True
+                break
+            elif ev.get('eventTypeId') == 480:  # Serving event
+                match_started = True
+                break
+
         # Check if currently in a set
         for _, _, ev in reversed(indexed):
             if ev.get('startsPeriod'):
