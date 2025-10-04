@@ -132,8 +132,7 @@ body {
 .theme-default .highlight {
     position: absolute;
     bottom: 2.5vh;
-    left: 50%;
-    transform: translateX(-50%);
+    right: 2.5vw;
     background: rgba(45, 29, 29, 0.5);
     background: oklch(25% 0.025 20 / 50%);
     color: white;
@@ -142,19 +141,13 @@ body {
     border-radius: 0.8vmax;
     text-align: center;
 }
-.theme-default .home-highlight {
-    transform: translateX(-100%) translateX(-2vw);
-}
-.theme-default .away-highlight {
-    transform: translateX(2vw);
-}
 .theme-default .highlight-desc {
-    font-size: 1.5em;
+    font-size: 0.8em;
     font-weight: bold;
     margin-bottom: 0.2em;
 }
 .theme-default .highlight-player {
-    font-size: 1.6em;
+    font-size: 0.7em;
 }
 
 /* =============================================================
