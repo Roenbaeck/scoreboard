@@ -8,6 +8,7 @@
     <script type="text/javascript">
         const DOM_PARSER = new DOMParser();
         var current_scoreboard_xml;
+        let highlightTimeout;
         window.addEventListener('load', function() {
             // Set theme from URL parameter
             const urlParams = new URLSearchParams(window.location.search);
@@ -31,8 +32,18 @@
                                 const target = document.getElementById(elementName + '_wrapper');
                                 if (element) {
                                     target.replaceChildren(element);
+                                    if (elementName === 'highlight') {
+                                        if (highlightTimeout) clearTimeout(highlightTimeout);
+                                        highlightTimeout = setTimeout(() => {
+                                            target.replaceChildren();
+                                        }, 8000);
+                                    }
                                 } else {
                                     target.replaceChildren();
+                                    if (elementName === 'highlight' && highlightTimeout) {
+                                        clearTimeout(highlightTimeout);
+                                        highlightTimeout = null;
+                                    }
                                 }
                             }
                         }

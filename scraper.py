@@ -314,7 +314,6 @@ def extract_match_state(api_data, team_color_name_map=None, force_lineup=False):
 
     # Check if match has started by looking at the first chronological event
     match_started = False
-    in_set = False
     highlight = None
     if events:
         indexed = []
@@ -348,15 +347,6 @@ def extract_match_state(api_data, team_color_name_map=None, force_lineup=False):
                 match_started = True
                 break
 
-        # Check if currently in a set
-        for _, _, ev in reversed(indexed):
-            if ev.get('startsPeriod'):
-                in_set = True
-                break
-            elif ev.get('stopsPeriod'):
-                in_set = False
-                break
-
         # Find the most recent highlight event 
         # 468 - Attack
         # 469 - Block
@@ -375,9 +365,9 @@ def extract_match_state(api_data, team_color_name_map=None, force_lineup=False):
         if current_score.get('homeGoals', 0) > 0 or current_score.get('awayGoals', 0) > 0:
             match_started = True
 
-    # Parse lineup if match not started or not in a set
+    # Parse lineup if match not started
     lineup_data = None
-    if (force_lineup or not match_started or not in_set) and 'lineup' in api_data:
+    if (force_lineup or not match_started) and 'lineup' in api_data:
         lineup = api_data['lineup']
         home_lineup_dict = {}  # Track unique players by personId
         away_lineup_dict = {}
@@ -463,15 +453,6 @@ def extract_match_state(api_data, team_color_name_map=None, force_lineup=False):
         current_home_points = cs.get('home', 0)
         current_away_points = cs.get('away', 0)
 
-    # Fallback: if points are present, assume in a set
-    if not in_set:
-        if current_home_points > 0 or current_away_points > 0:
-            in_set = True
-    
-    # Additional fallback: if there are completed sets and current scores are 0-0, we're between sets
-    if (home_sets_won + away_sets_won) > 0 and current_home_points == 0 and current_away_points == 0:
-        in_set = False
-
     # Determine serving team: prefer correct key 'teamIdServing' (observed in API), fallback to legacy 'servingTeamId'
     serving_team_id = None
     if isinstance(gamestate, dict):
@@ -509,7 +490,6 @@ def extract_match_state(api_data, team_color_name_map=None, force_lineup=False):
         state['lineup'] = lineup_data
     state['matchStarted'] = match_started
     state['forceLineup'] = force_lineup
-    state['inSet'] = in_set
     if highlight:
         state['highlight'] = highlight
     # Attach completed set scores for overlay (list of dicts with homeGoals/awayGoals)
@@ -596,19 +576,20 @@ def write_scoreboard_xml(state, output_path, show_ended_sets=False):
                 xml_parts.append('        ' + line.strip())
     match_ended_flag = state.get('matchEnded')
     if not match_ended_flag:
-        xml_parts.append(f'        <div id="home_score" class="score">{home.get("points",0)}</div>')
-    xml_parts.append('    </div>')  # close home div
-    xml_parts.append('    <div class="away">')
-    xml_parts.append(f'        <div id="away_set" class="set">{away.get("sets", 0)}</div>')
-    xml_parts.append(f'        <div id="away_color" class="color"{away_color_style}>{nbsp}</div>')
-    xml_parts.append(f'        <div id="away_team" class="team" contenteditable="true">{away.get("name","Away")}</div>')
-    xml_parts.append(f'        <div id="away_serve" class="{away_serve_class}">{nbsp}</div>')
+        xml_parts.append(f'            <div id="home_score" class="score">{home.get("points",0)}</div>')
+    xml_parts.append('        </div>')  # close home div
+    xml_parts.append('        <div class="away">')
+    xml_parts.append(f'            <div id="away_set" class="set">{away.get("sets", 0)}</div>')
+    xml_parts.append(f'            <div id="away_color" class="color"{away_color_style}>{nbsp}</div>')
+    xml_parts.append(f'            <div id="away_team" class="team" contenteditable="true">{away.get("name","Away")}</div>')
+    xml_parts.append(f'            <div id="away_serve" class="{away_serve_class}">{nbsp}</div>')
     if away_ended_html:
         for line in away_ended_html.split('\n'):
             if line.strip():
-                xml_parts.append('        ' + line.strip())
+                xml_parts.append('            ' + line.strip())
     if not match_ended_flag:
-        xml_parts.append(f'        <div id="away_score" class="score">{away.get("points",0)}</div>')
+        xml_parts.append(f'            <div id="away_score" class="score">{away.get("points",0)}</div>')
+    xml_parts.append('        </div>')  # close away div
     xml_parts.append('    </div>')  # close scoreboard div
     if 'highlight' in state:
         highlight_class = 'highlight'
@@ -621,13 +602,8 @@ def write_scoreboard_xml(state, output_path, show_ended_sets=False):
         xml_parts.append(f'        <div class="highlight-desc">{state["highlight"]["description"]}</div>')
         xml_parts.append(f'        <div class="highlight-player">{state["highlight"]["player_number"]} {state["highlight"]["player_name"]}</div>')
         xml_parts.append('    </div>')
-    # Check if we're between sets (current scores are 0-0 and there are completed sets)
-    set_scores = state.get('setScores') or []
-    between_sets = (len(set_scores) > 0 and 
-                   state.get('home', {}).get('points', 0) == 0 and 
-                   state.get('away', {}).get('points', 0) == 0)
     
-    if 'lineup' in state and (state.get('forceLineup', False) or not state.get('matchStarted', True) or not state.get('inSet', False) or between_sets):
+    if 'lineup' in state and (state.get('forceLineup', False) or not state.get('matchStarted', True)):
         xml_parts.append('    <div id="lineup" class="lineup">')
         xml_parts.append('        <div class="home_team">')
         xml_parts.append(f'            <div id="home_team_name" class="team_name">{home.get("name","Home")}</div>')
