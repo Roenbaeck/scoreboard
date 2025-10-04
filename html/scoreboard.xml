@@ -5,18 +5,18 @@
             <div id="home_color" class="color" style="background: rgb(0, 0, 0);"> </div>
             <div id="home_team" class="team" contenteditable="true">Kolbäcks VK</div>
             <div id="home_serve" class="serve serving"> </div>
-        <div id="home_score" class="score">1</div>
+            <div id="home_score" class="score">14</div>
         </div>
         <div class="away">
-            <div id="away_set" class="set">1</div>
+            <div id="away_set" class="set">2</div>
             <div id="away_color" class="color" style="background: rgb(255, 0, 0);"> </div>
             <div id="away_team" class="team" contenteditable="true">Habo Wolley</div>
             <div id="away_serve" class="serve"> </div>
-            <div id="away_score" class="score">5</div>
+            <div id="away_score" class="score">7</div>
         </div>
     </div>
     <div id="highlight" class="highlight home-highlight">
-        <div class="highlight-desc">Anfall</div>
-        <div class="highlight-player">2 Maria Dahlin</div>
+        <div class="highlight-desc">Serveess</div>
+        <div class="highlight-player">3 Caroline Hacar</div>
     </div>
 </div>
