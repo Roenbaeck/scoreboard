@@ -92,7 +92,8 @@ body {
 .theme-default .lineup {
     display: table;
     position: absolute;
-    margin: 2.5vh 2.5vw 2.5vh 2.5vw; 
+    top: 16vh;
+    left: 2.5vw;
     background: rgba(45, 29, 29, 0.5);
     background: oklch(25% 0.025 20 / 50%);
     color: white;
