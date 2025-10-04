@@ -282,15 +282,15 @@ body {
     font-weight: 800;
 }
 
-/* Lineup as two glass cards side-by-side centered on screen */
+/* Lineup as two glass cards side-by-side centered near top of screen */
 .theme-modern .lineup {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1vmax;
     position: fixed;
-    top: 50%;
+    top: 2.5vh;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translateX(-50%);
     max-width: 70vw;
     background: rgba(18, 22, 40, 0.65);
     background: var(--bg-lineup-oklch);
