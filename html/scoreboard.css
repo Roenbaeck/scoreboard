@@ -329,7 +329,7 @@ body {
 /* Highlight as toast above the scoring team */
 .theme-modern .highlight {
     position: absolute;
-    bottom: 4.5vmax;
+    bottom: 5vmax;
     background: rgba(18, 22, 40, 0.65);
     background: var(--bg-highlight-oklch);
     color: var(--color-highlight);
