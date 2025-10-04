@@ -133,6 +133,69 @@ def analyze_player_stats(data):
     
     return dict(player_stats), dict(team_stats)
 
+def determine_home_away_from_events(events, teams):
+    """Infer which team is home vs away by observing which score column increments when each team scores.
+
+    Returns a tuple: (home_team_id, away_team_id). Falls back to (None, None) if indeterminable.
+    """
+    # Prepare chronological ordering (many feeds are reverse chronological)
+    def event_time(e):
+        # Prefer startedAt, then created_at, else None
+        return e.get('startedAt') or e.get('created_at') or ''
+
+    # Sort ascending by time string (ISO-8601 compares lexicographically)
+    try:
+        ordered = sorted(events, key=event_time)
+    except Exception:
+        ordered = list(events)[::-1]
+
+    prev_score = None  # dict with keys 'home' and 'away'
+    team_to_side = {}  # team_id -> 'home' | 'away'
+
+    for ev in ordered:
+        goals = ev.get('goals') or 0
+        team_id = ev.get('teamId')
+        cs = ev.get('currentScore') or {}
+
+        # Establish prev_score if missing and current has both values
+        if prev_score is None and isinstance(cs, dict) and 'home' in cs and 'away' in cs:
+            prev_score = {'home': cs.get('home', 0), 'away': cs.get('away', 0)}
+            continue
+
+        # Only consider scoring events with a team and an observable current score
+        if goals > 0 and team_id and isinstance(cs, dict) and 'home' in cs and 'away' in cs and prev_score is not None:
+            dh = (cs.get('home', 0) or 0) - (prev_score.get('home', 0) or 0)
+            da = (cs.get('away', 0) or 0) - (prev_score.get('away', 0) or 0)
+
+            # If exactly one side increased by the number of goals, we can attribute the side
+            if dh > 0 and da == 0:
+                team_to_side.setdefault(team_id, 'home')
+            elif da > 0 and dh == 0:
+                team_to_side.setdefault(team_id, 'away')
+
+        # Update prev_score for next iteration when currentScore is available
+        if isinstance(cs, dict) and 'home' in cs and 'away' in cs:
+            prev_score = {'home': cs.get('home', 0), 'away': cs.get('away', 0)}
+
+        # Early exit if we've determined both sides
+        if len(set(team_to_side.values())) == 2:
+            break
+
+    # If we figured out one side, infer the other from known teams
+    if team_to_side:
+        team_ids = list(teams.keys())
+        if len(team_ids) >= 2:
+            # Identify the known team id and assign the opposite to the other team id
+            known_team_id, side = next(iter(team_to_side.items()))
+            other_team_id = team_ids[0] if team_ids[1] == known_team_id else team_ids[1]
+            if side == 'home':
+                return known_team_id, other_team_id
+            else:
+                return other_team_id, known_team_id
+
+    # Could not determine mapping
+    return None, None
+
 def calculate_advanced_stats(player_stats, team_stats):
     """Calculate advanced statistics and rankings."""
     for player_id, stats in player_stats.items():
@@ -282,14 +345,22 @@ def generate_html_report(player_stats, team_stats, match_data, output_file="voll
     current_score = gamestate.get('currentScore', {})
     set_scores = gamestate.get('currentSetScores', [])
     
-    # Determine team names and final set score
-    team_names = list(team_stats.keys())
-    if len(team_names) >= 2:
-        home_team_name = list(team_stats.values())[0]['name']
-        away_team_name = list(team_stats.values())[1]['name']
+    # Determine correct home/away teams by inspecting event score deltas
+    events = match_data.get('events', [])
+    home_team_id, away_team_id = determine_home_away_from_events(events, team_stats)
+
+    # Fallback if not determinable: preserve prior behavior
+    if home_team_id is None or away_team_id is None:
+        team_names = list(team_stats.keys())
+        if len(team_names) >= 2:
+            home_team_name = list(team_stats.values())[0]['name']
+            away_team_name = list(team_stats.values())[1]['name']
+        else:
+            home_team_name = "Team 1"
+            away_team_name = "Team 2"
     else:
-        home_team_name = "Team 1"
-        away_team_name = "Team 2"
+        home_team_name = team_stats.get(home_team_id, {}).get('name', 'Home')
+        away_team_name = team_stats.get(away_team_id, {}).get('name', 'Away')
     
     final_home_sets = current_score.get('homeGoals', 0)
     final_away_sets = current_score.get('awayGoals', 0)
