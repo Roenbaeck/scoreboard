@@ -500,9 +500,11 @@ def generate_html_report(player_stats, team_stats, match_data, output_file="voll
         }}
         
         .chart-value {{
-            min-width: 60px;
+            width: 120px;
+            min-width: 120px;
             text-align: right;
             font-weight: bold;
+            flex-shrink: 0;
         }}
         
         .summary-grid {{

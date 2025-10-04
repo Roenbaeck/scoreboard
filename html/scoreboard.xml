@@ -7,9 +7,9 @@
             <div id="home_serve" class="serve serving"> </div>
         </div>
         <div class="away">
-            <div id="away_set" class="set">1</div>
-            <div id="away_color" class="color" style="background: rgb(255, 0, 0);"> </div>
-            <div id="away_team" class="team" contenteditable="true">Elden VBK</div>
+            <div id="away_set" class="set">2</div>
+            <div id="away_color" class="color" style="background: rgb(0, 0, 255);"> </div>
+            <div id="away_team" class="team" contenteditable="true">Uppsala VBS C</div>
             <div id="away_serve" class="serve"> </div>
         </div>
     </div>
