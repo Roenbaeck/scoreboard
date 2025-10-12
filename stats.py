@@ -12,8 +12,20 @@ import json
 import sys
 import argparse
 import os
+import re
+import requests
 from collections import defaultdict, Counter
 from datetime import datetime
+from urllib.parse import urlparse
+
+# Reuse page parsing from scraper when available
+try:
+    from scraper import get_api_url, HEADERS  # type: ignore
+except Exception:
+    get_api_url = None
+    HEADERS = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
 
 # Event type mappings based on the JSON data
 EVENT_TYPES = {
@@ -37,6 +49,37 @@ def parse_match_data(json_file):
     except json.JSONDecodeError as e:
         print(f"Error: Invalid JSON in '{json_file}': {e}")
         sys.exit(1)
+
+def fetch_match_data_from_url(page_url, dump_json_path=None):
+    """Given a Profixio competition page URL, find the API URL and fetch JSON.
+
+    Optionally writes the JSON to dump_json_path.
+    """
+    if not get_api_url:
+        print("Error: scraper.get_api_url not available; cannot process URL input.")
+        sys.exit(2)
+    api_url, _html = get_api_url(page_url)
+    if not api_url:
+        print("Error: Could not locate API URL from page. Ensure the URL is a Profixio match page with expandmatch.")
+        sys.exit(2)
+    try:
+        resp = requests.get(api_url, headers=HEADERS)
+        resp.raise_for_status()
+        data = resp.json()
+        if dump_json_path:
+            try:
+                with open(dump_json_path, 'w', encoding='utf-8') as f:
+                    json.dump(data, f, ensure_ascii=False, indent=2)
+                print(f"Raw API JSON written to {dump_json_path}")
+            except OSError as e:
+                print(f"Warning: failed to write dump JSON: {e}")
+        return data
+    except requests.RequestException as e:
+        print(f"Error fetching API data: {e}")
+        sys.exit(2)
+    except json.JSONDecodeError:
+        print("Error: Could not decode the response from the API as JSON.")
+        sys.exit(3)
 
 def extract_team_info(data):
     """Extract team names and IDs from the match data."""
@@ -957,23 +1000,34 @@ def generate_html_report(player_stats, team_stats, match_data, output_file="voll
 
 def print_usage():
     """Print usage information."""
-    print("Usage: python3 stats.py <json_file>")
-    print("Example: python3 stats.py completed.json")
+    print("Usage: python3 stats.py <json_or_page_url> [--html out.html] [--dump-json dump.json]")
+    print("Examples:")
+    print("  python3 stats.py completed.json --html stats.html")
+    print("  python3 stats.py https://www.profixio.com/app/lx/competition/leagueid17734?expandmatch=32334711 --dump-json match.json --html stats.html")
 
 def main():
     """Main function."""
-    parser = argparse.ArgumentParser(description='Analyze volleyball player statistics from Profixio JSON data')
-    parser.add_argument('json_file', help='Path to the JSON file containing match data')
+    parser = argparse.ArgumentParser(description='Analyze volleyball player statistics from Profixio JSON or match page URL')
+    parser.add_argument('source', help='Path to a JSON file OR a Profixio page URL (with expandmatch)')
     parser.add_argument('--top', type=int, default=10, help='Number of top players to show in detailed breakdown (default: 10)')
     parser.add_argument('--min-points', type=int, default=0, help='Minimum points required to show player (default: 0)')
     parser.add_argument('--html', type=str, help='Generate HTML report and save to specified file (e.g., --html stats.html)')
     parser.add_argument('--html-only', action='store_true', help='Generate only HTML output (no text output)')
+    parser.add_argument('--dump-json', type=str, help='If source is a URL, write the fetched raw API JSON to this file')
     
     args = parser.parse_args()
     
+    # Determine whether source is URL or file path
+    src = args.source.strip()
+    is_url = bool(re.match(r'^https?://', src, flags=re.IGNORECASE))
+
     # Parse match data
-    print(f"Analyzing match data from: {args.json_file}")
-    data = parse_match_data(args.json_file)
+    if is_url:
+        print(f"Fetching match data from page: {src}")
+        data = fetch_match_data_from_url(src, dump_json_path=args.dump_json)
+    else:
+        print(f"Analyzing match data from file: {src}")
+        data = parse_match_data(src)
     
     # Analyze statistics
     player_stats, team_stats = analyze_player_stats(data)
