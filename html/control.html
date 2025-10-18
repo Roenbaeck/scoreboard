@@ -114,6 +114,7 @@
                 <button type="button" id="start-btn">Start Scraper</button>
                 <button type="button" class="danger" id="stop-btn">Stop Scraper</button>
                 <button type="button" class="secondary" id="stats-btn">Generate Stats</button>
+                <button type="button" class="secondary" id="manual-btn">Go to Manual</button>
             </div>
         </form>
 
@@ -133,6 +134,7 @@
         const messageBox = document.getElementById('message');
         const urlInput = document.getElementById('url-input');
     const statsLink = document.getElementById('stats-link');
+    const manualBtn = document.getElementById('manual-btn');
 
         function showMessage(text, type) {
             messageBox.textContent = text;
@@ -229,6 +231,21 @@
                 }
                 setStatsLink(output);
             });
+        });
+
+        manualBtn.addEventListener('click', async () => {
+            manualBtn.disabled = true;
+            try {
+                const response = await fetch('/api/scraper/stop', {
+                    method: 'POST'
+                });
+                if (!response.ok) {
+                    showMessage('Could not stop scraper automatically, continuing to manual mode.', 'error');
+                }
+            } catch (err) {
+                showMessage('Network error stopping scraper, continuing to manual mode.', 'error');
+            }
+            window.location.href = '/scoreboard.html';
         });
 
         fetchStatus();
