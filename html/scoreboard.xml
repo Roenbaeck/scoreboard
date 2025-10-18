@@ -1,18 +1,18 @@
 <div xmlns="http://www.w3.org/1999/xhtml">
     <div id="scoreboard" class="scoreboard">
         <div class="home">
-            <div id="home_set" class="set">0</div>
-            <div id="home_color" class="color" style="background: rgb(255, 0, 0);"> </div>
-            <div id="home_team" class="team" contenteditable="true">Elden VBK C</div>
-            <div id="home_serve" class="serve serving"> </div>
-            <div id="home_score" class="score">2</div>
+            <div id="home_set" class="set">1</div>
+            <div id="home_color" class="color" style="background: rgb(0, 0, 255);"> </div>
+            <div id="home_team" class="team" contenteditable="true">Eksjö Volleyboll IK</div>
+            <div id="home_serve" class="serve"> </div>
+            <div id="home_score" class="score">12</div>
         </div>
         <div class="away">
-            <div id="away_set" class="set">2</div>
-            <div id="away_color" class="color" style="background: rgb(0, 0, 0);"> </div>
-            <div id="away_team" class="team" contenteditable="true">Kungsängens VBF</div>
-            <div id="away_serve" class="serve"> </div>
-            <div id="away_score" class="score">5</div>
+            <div id="away_set" class="set">0</div>
+            <div id="away_color" class="color" style="background: rgb(0, 0, 128);"> </div>
+            <div id="away_team" class="team" contenteditable="true">Gislaveds VBK C</div>
+            <div id="away_serve" class="serve serving"> </div>
+            <div id="away_score" class="score">9</div>
         </div>
     </div>
 </div>

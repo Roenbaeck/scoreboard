@@ -7,6 +7,7 @@ const XML_SERIALIZER = new XMLSerializer();
 
 // Configuration
 const TOKEN = 'your_secure_token_here';  // Change this to your secure token
+const SCOREBOARD_STORAGE_KEY = 'scoreboard';
 
 function save_state(clear) {
     if(clear == true) undoable_scoreboards.length = 0;
@@ -21,7 +22,10 @@ function undo(evt) {
         redoable_scoreboards.push(XML_SERIALIZER.serializeToString(document.getElementById('scoreboard')));
         document.getElementById('redo').classList.add('redo');
         var doc = DOM_PARSER.parseFromString(last_scoreboard, 'text/xml');
-        document.getElementById('scoreboard').replaceWith(doc.getElementById('scoreboard'));      
+        var parsed = doc.getElementById('scoreboard');
+        if (parsed) {
+            document.getElementById('scoreboard').replaceWith(parsed.cloneNode(true));      
+        }
         get_position();
         update_colors();
         add_scoreboard_listeners();
@@ -35,7 +39,10 @@ function redo(evt) {
         undoable_scoreboards.push(XML_SERIALIZER.serializeToString(document.getElementById('scoreboard')));
         document.getElementById('undo').classList.add('undo');
         var doc = DOM_PARSER.parseFromString(last_scoreboard, 'text/xml');
-        document.getElementById('scoreboard').replaceWith(doc.getElementById('scoreboard'));    
+        var parsed = doc.getElementById('scoreboard');
+        if (parsed) {
+            document.getElementById('scoreboard').replaceWith(parsed.cloneNode(true));    
+        }
         get_position();
         update_colors();
         add_scoreboard_listeners();    
@@ -45,7 +52,7 @@ function redo(evt) {
 }
 function upload() {
     var scoreboard = XML_SERIALIZER.serializeToString(document.getElementById('scoreboard'));
-    window.localStorage.setItem('scoreboard', scoreboard);
+    window.localStorage.setItem(SCOREBOARD_STORAGE_KEY, scoreboard);
     var data = new FormData();
     data.append('filedata', scoreboard);
     data.append('filename', 'scoreboard.xml');
@@ -127,7 +134,7 @@ function reset(evt) {
         document.getElementById('home_score').textContent = 0;
         document.getElementById('away_score').textContent = 0;
         upload();
-        window.localStorage.clear();
+        window.localStorage.removeItem(SCOREBOARD_STORAGE_KEY);
     }
 } 
 function get_position() {
@@ -143,6 +150,40 @@ function get_position() {
         }
     }
     document.getElementById('position').style = style;    
+}
+
+async function load_initial_scoreboard() {
+    const cacheBuster = Date.now();
+    try {
+        const response = await fetch(`scoreboard.xml?ts=${cacheBuster}`, { cache: 'no-store' });
+        if (response.ok) {
+            const text = await response.text();
+            if (text) {
+                const doc = DOM_PARSER.parseFromString(text, 'text/xml');
+                    const remoteScoreboard = doc.getElementById('scoreboard');
+                    if (remoteScoreboard) {
+                        document.getElementById('scoreboard').replaceWith(remoteScoreboard.cloneNode(true));
+                    window.localStorage.setItem(SCOREBOARD_STORAGE_KEY, text);
+                    get_position();
+                    update_colors();
+                    return;
+                }
+            }
+        }
+    } catch (err) {
+        // Ignore fetch errors; fallback to local storage
+    }
+
+    const stored = window.localStorage.getItem(SCOREBOARD_STORAGE_KEY);
+    if (stored) {
+        const doc = DOM_PARSER.parseFromString(stored, 'text/xml');
+        const storedScoreboard = doc.getElementById('scoreboard');
+            if (storedScoreboard) {
+                document.getElementById('scoreboard').replaceWith(storedScoreboard.cloneNode(true));
+            get_position();
+            update_colors();
+        }
+    }
 }
 function set_position(evt) {
     if(confirm("Are you sure you want to move the scoreboard?") == true) {
@@ -222,19 +263,14 @@ window.addEventListener('scroll', function(evt) {
     }    
 });
 window.addEventListener('load', function() {
-    var scoreboard = window.localStorage.getItem('scoreboard');
-    if(scoreboard) {
-        var doc = DOM_PARSER.parseFromString(scoreboard, 'text/xml');
-        document.getElementById('scoreboard').replaceWith(doc.getElementById('scoreboard'));
-        get_position();
-        update_colors();
-    }
-    add_scoreboard_listeners();
-    document.getElementById('undo').addEventListener('pointerup', undo);
-    document.getElementById('reset').addEventListener('pointerup', reset);
-    document.getElementById('redo').addEventListener('pointerup', redo);
-    document.getElementById('screen').addEventListener('pointerup', set_position);
-    document.addEventListener('dblclick', function(event) {
-        event.preventDefault();
-    }, { passive: false });
+    load_initial_scoreboard().finally(function() {
+        add_scoreboard_listeners();
+        document.getElementById('undo').addEventListener('pointerup', undo);
+        document.getElementById('reset').addEventListener('pointerup', reset);
+        document.getElementById('redo').addEventListener('pointerup', redo);
+        document.getElementById('screen').addEventListener('pointerup', set_position);
+        document.addEventListener('dblclick', function(event) {
+            event.preventDefault();
+        }, { passive: false });
+    });
 });
