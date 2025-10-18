@@ -1,0 +1,211 @@
+
+[2025-10-18 10:19:53] Starting scraper for https://www.profixio.com/app/lx/SVBF?day=2025-10-18&expandmatch=32327321
+/Users/lars/Library/Python/3.9/lib/python/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+Using page URL: https://www.profixio.com/app/lx/SVBF?day=2025-10-18&expandmatch=32327321 (match id: 32327321)
+Attempting to fetch content from: https://www.profixio.com/app/lx/SVBF?day=2025-10-18&expandmatch=32327321
+Successfully fetched HTML content.
+Searching for all 'wire:effects' attributes...
+Found 11 'wire:effects' attribute(s). Checking each one...
+Found 'apiurl' in effects attribute #9.
+Extracted 2 team entries: 1393272:#FF0000, 1407693:#000000
+
+Successfully Found API URL: https://www.profixio.com/app/api/emp/32327321/0?expires=1760861994&signature=588692c30d52d0105f4073d5c82b5dc168b695f3d917c8c38f1bd7f9e61219d4
+Entering daemon mode. Press Ctrl+C to stop.
+[Daemon] Updated scoreboard (home 2 - away 6)
+[Daemon] Updated scoreboard (home 2 - away 6)
+[Daemon] Updated scoreboard (home 3 - away 6)
+[Daemon] Updated scoreboard (home 3 - away 6)
+[Daemon] Updated scoreboard (home 3 - away 6)
+[Daemon] Updated scoreboard (home 3 - away 6)
+[Daemon] Refreshing original page for updated API URL & team colors...
+Attempting to fetch content from: https://www.profixio.com/app/lx/SVBF?day=2025-10-18&expandmatch=32327321
+Successfully fetched HTML content.
+Searching for all 'wire:effects' attributes...
+Found 11 'wire:effects' attribute(s). Checking each one...
+Found 'apiurl' in effects attribute #9.
+Extracted 2 team entries: 1393272:#FF0000, 1407693:#000000
+[Daemon] Updated scoreboard (home 3 - away 6)
+[Daemon] Updated scoreboard (home 3 - away 7)
+[Daemon] Updated scoreboard (home 3 - away 7)
+[Daemon] Updated scoreboard (home 4 - away 7)
+[Daemon] Updated scoreboard (home 4 - away 7)
+[Daemon] Refreshing original page for updated API URL & team colors...
+Attempting to fetch content from: https://www.profixio.com/app/lx/SVBF?day=2025-10-18&expandmatch=32327321
+Successfully fetched HTML content.
+Searching for all 'wire:effects' attributes...
+Found 11 'wire:effects' attribute(s). Checking each one...
+Found 'apiurl' in effects attribute #9.
+Extracted 2 team entries: 1393272:#FF0000, 1407693:#000000
+[Daemon] Updated scoreboard (home 5 - away 7)
+[Daemon] Updated scoreboard (home 5 - away 7)
+[Daemon] Updated scoreboard (home 5 - away 7)
+[Daemon] Updated scoreboard (home 6 - away 7)
+[Daemon] Updated scoreboard (home 6 - away 7)
+[Daemon] Updated scoreboard (home 6 - away 8)
+[Daemon] Refreshing original page for updated API URL & team colors...
+Attempting to fetch content from: https://www.profixio.com/app/lx/SVBF?day=2025-10-18&expandmatch=32327321
+Successfully fetched HTML content.
+Searching for all 'wire:effects' attributes...
+Found 11 'wire:effects' attribute(s). Checking each one...
+Found 'apiurl' in effects attribute #9.
+Extracted 2 team entries: 1393272:#FF0000, 1407693:#000000
+[Daemon] Updated scoreboard (home 6 - away 8)
+[Daemon] Updated scoreboard (home 6 - away 9)
+[Daemon] Updated scoreboard (home 6 - away 9)
+[Daemon] Updated scoreboard (home 6 - away 10)
+[Daemon] Updated scoreboard (home 6 - away 10)
+[Daemon] Refreshing original page for updated API URL & team colors...
+Attempting to fetch content from: https://www.profixio.com/app/lx/SVBF?day=2025-10-18&expandmatch=32327321
+Successfully fetched HTML content.
+Searching for all 'wire:effects' attributes...
+Found 11 'wire:effects' attribute(s). Checking each one...
+Found 'apiurl' in effects attribute #9.
+Extracted 2 team entries: 1393272:#FF0000, 1407693:#000000
+[Daemon] Updated scoreboard (home 7 - away 10)
+[Daemon] Updated scoreboard (home 7 - away 10)
+[Daemon] Updated scoreboard (home 7 - away 10)
+[Daemon] Updated scoreboard (home 8 - away 10)
+[Daemon] Updated scoreboard (home 8 - away 10)
+[Daemon] Refreshing original page for updated API URL & team colors...
+Attempting to fetch content from: https://www.profixio.com/app/lx/SVBF?day=2025-10-18&expandmatch=32327321
+Successfully fetched HTML content.
+Searching for all 'wire:effects' attributes...
+Found 11 'wire:effects' attribute(s). Checking each one...
+Found 'apiurl' in effects attribute #9.
+Extracted 2 team entries: 1393272:#FF0000, 1407693:#000000
+[Daemon] Updated scoreboard (home 8 - away 11)
+[Daemon] Updated scoreboard (home 8 - away 11)
+[Daemon] Updated scoreboard (home 8 - away 12)
+[Daemon] Updated scoreboard (home 8 - away 12)
+[Daemon] Updated scoreboard (home 8 - away 12)
+[Daemon] Updated scoreboard (home 8 - away 13)
+[Daemon] Refreshing original page for updated API URL & team colors...
+Attempting to fetch content from: https://www.profixio.com/app/lx/SVBF?day=2025-10-18&expandmatch=32327321
+Successfully fetched HTML content.
+Searching for all 'wire:effects' attributes...
+Found 11 'wire:effects' attribute(s). Checking each one...
+Found 'apiurl' in effects attribute #9.
+Extracted 2 team entries: 1393272:#FF0000, 1407693:#000000
+[Daemon] Updated scoreboard (home 8 - away 13)
+[Daemon] Updated scoreboard (home 9 - away 13)
+[Daemon] Updated scoreboard (home 9 - away 13)
+[Daemon] Updated scoreboard (home 9 - away 14)
+[Daemon] Updated scoreboard (home 9 - away 14)
+[Daemon] Refreshing original page for updated API URL & team colors...
+Attempting to fetch content from: https://www.profixio.com/app/lx/SVBF?day=2025-10-18&expandmatch=32327321
+Successfully fetched HTML content.
+Searching for all 'wire:effects' attributes...
+Found 11 'wire:effects' attribute(s). Checking each one...
+Found 'apiurl' in effects attribute #9.
+Extracted 2 team entries: 1393272:#FF0000, 1407693:#000000
+[Daemon] Updated scoreboard (home 9 - away 14)
+[Daemon] Updated scoreboard (home 10 - away 14)
+[Daemon] Updated scoreboard (home 10 - away 14)
+[Daemon] Updated scoreboard (home 10 - away 15)
+[Daemon] Updated scoreboard (home 10 - away 15)
+[Daemon] Updated scoreboard (home 10 - away 16)
+[Daemon] Refreshing original page for updated API URL & team colors...
+Attempting to fetch content from: https://www.profixio.com/app/lx/SVBF?day=2025-10-18&expandmatch=32327321
+Successfully fetched HTML content.
+Searching for all 'wire:effects' attributes...
+Found 11 'wire:effects' attribute(s). Checking each one...
+Found 'apiurl' in effects attribute #9.
+Extracted 2 team entries: 1393272:#FF0000, 1407693:#000000
+[Daemon] Updated scoreboard (home 10 - away 16)
+[Daemon] Updated scoreboard (home 10 - away 16)
+[Daemon] Updated scoreboard (home 10 - away 16)
+[Daemon] Updated scoreboard (home 10 - away 16)
+[Daemon] Updated scoreboard (home 10 - away 16)
+[Daemon] Refreshing original page for updated API URL & team colors...
+Attempting to fetch content from: https://www.profixio.com/app/lx/SVBF?day=2025-10-18&expandmatch=32327321
+Successfully fetched HTML content.
+Searching for all 'wire:effects' attributes...
+Found 11 'wire:effects' attribute(s). Checking each one...
+Found 'apiurl' in effects attribute #9.
+Extracted 2 team entries: 1393272:#FF0000, 1407693:#000000
+[Daemon] Updated scoreboard (home 10 - away 17)
+[Daemon] Updated scoreboard (home 10 - away 17)
+[Daemon] Updated scoreboard (home 10 - away 17)
+[Daemon] Updated scoreboard (home 10 - away 18)
+[Daemon] Updated scoreboard (home 11 - away 18)
+[Daemon] Refreshing original page for updated API URL & team colors...
+Attempting to fetch content from: https://www.profixio.com/app/lx/SVBF?day=2025-10-18&expandmatch=32327321
+Successfully fetched HTML content.
+Searching for all 'wire:effects' attributes...
+Found 11 'wire:effects' attribute(s). Checking each one...
+Found 'apiurl' in effects attribute #9.
+Extracted 2 team entries: 1393272:#FF0000, 1407693:#000000
+[Daemon] Updated scoreboard (home 11 - away 18)
+[Daemon] Updated scoreboard (home 11 - away 19)
+[Daemon] Updated scoreboard (home 11 - away 19)
+[Daemon] Updated scoreboard (home 11 - away 19)
+[Daemon] Updated scoreboard (home 11 - away 19)
+[Daemon] Updated scoreboard (home 12 - away 19)
+[Daemon] Refreshing original page for updated API URL & team colors...
+Attempting to fetch content from: https://www.profixio.com/app/lx/SVBF?day=2025-10-18&expandmatch=32327321
+Successfully fetched HTML content.
+Searching for all 'wire:effects' attributes...
+Found 11 'wire:effects' attribute(s). Checking each one...
+Found 'apiurl' in effects attribute #9.
+Extracted 2 team entries: 1393272:#FF0000, 1407693:#000000
+[Daemon] Updated scoreboard (home 12 - away 19)
+[Daemon] Updated scoreboard (home 12 - away 19)
+[Daemon] Updated scoreboard (home 13 - away 19)
+[Daemon] Updated scoreboard (home 13 - away 19)
+[Daemon] Updated scoreboard (home 13 - away 19)
+[Daemon] Refreshing original page for updated API URL & team colors...
+Attempting to fetch content from: https://www.profixio.com/app/lx/SVBF?day=2025-10-18&expandmatch=32327321
+Successfully fetched HTML content.
+Searching for all 'wire:effects' attributes...
+Found 11 'wire:effects' attribute(s). Checking each one...
+Found 'apiurl' in effects attribute #9.
+Extracted 2 team entries: 1393272:#FF0000, 1407693:#000000
+[Daemon] Updated scoreboard (home 14 - away 19)
+[Daemon] Updated scoreboard (home 14 - away 19)
+[Daemon] Updated scoreboard (home 14 - away 19)
+[Daemon] Updated scoreboard (home 14 - away 19)
+[Daemon] Updated scoreboard (home 14 - away 19)
+[Daemon] Updated scoreboard (home 15 - away 19)
+[Daemon] Refreshing original page for updated API URL & team colors...
+Attempting to fetch content from: https://www.profixio.com/app/lx/SVBF?day=2025-10-18&expandmatch=32327321
+Successfully fetched HTML content.
+Searching for all 'wire:effects' attributes...
+Found 11 'wire:effects' attribute(s). Checking each one...
+Found 'apiurl' in effects attribute #9.
+Extracted 2 team entries: 1393272:#FF0000, 1407693:#000000
+[Daemon] Updated scoreboard (home 15 - away 19)
+[Daemon] Updated scoreboard (home 16 - away 19)
+[Daemon] Updated scoreboard (home 16 - away 19)
+[Daemon] Updated scoreboard (home 16 - away 20)
+[Daemon] Updated scoreboard (home 16 - away 20)
+[Daemon] Refreshing original page for updated API URL & team colors...
+Attempting to fetch content from: https://www.profixio.com/app/lx/SVBF?day=2025-10-18&expandmatch=32327321
+Successfully fetched HTML content.
+Searching for all 'wire:effects' attributes...
+Found 11 'wire:effects' attribute(s). Checking each one...
+Found 'apiurl' in effects attribute #9.
+Extracted 2 team entries: 1393272:#FF0000, 1407693:#000000
+[Daemon] Updated scoreboard (home 17 - away 20)
+[Daemon] Updated scoreboard (home 17 - away 20)
+[Daemon] Updated scoreboard (home 17 - away 20)
+[Daemon] Updated scoreboard (home 17 - away 21)
+[Daemon] Updated scoreboard (home 17 - away 21)
+[Daemon] Refreshing original page for updated API URL & team colors...
+Attempting to fetch content from: https://www.profixio.com/app/lx/SVBF?day=2025-10-18&expandmatch=32327321
+Successfully fetched HTML content.
+Searching for all 'wire:effects' attributes...
+Found 11 'wire:effects' attribute(s). Checking each one...
+Found 'apiurl' in effects attribute #9.
+Extracted 2 team entries: 1393272:#FF0000, 1407693:#000000
+[Daemon] Updated scoreboard (home 18 - away 21)
+[Daemon] Updated scoreboard (home 18 - away 21)
+[Daemon] Updated scoreboard (home 18 - away 21)
+[Daemon] Updated scoreboard (home 19 - away 21)
+[Daemon] Updated scoreboard (home 19 - away 21)
+
+Daemon stopped by user.
+
+[2025-10-18 10:44:30] Starting scraper for https://www.profixio.com/app/lx/SVBF?day=2025-10-18&expandmatch=32327321
+/Users/lars/Library/Python/3.9/lib/python/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(

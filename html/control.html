@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Scoreboard Control</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f6fa;
+            color: #2c3e50;
+        }
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            margin-top: 0;
+            font-size: 1.9rem;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 6px;
+        }
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 14px;
+            border: 1px solid #dcdde1;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        .button-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        button.secondary {
+            background-color: #e67e22;
+        }
+        button.danger {
+            background-color: #e74c3c;
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .status-box {
+            margin: 20px 0;
+            padding: 12px;
+            background: #ecf0f1;
+            border-radius: 6px;
+        }
+        .log {
+            background: #1e272e;
+            color: #d2dae2;
+            padding: 12px;
+            border-radius: 6px;
+            font-family: monospace;
+            height: 160px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin-top: 20px;
+        }
+        .message {
+            margin-top: 14px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .message.success {
+            background: #2ecc71;
+            color: white;
+        }
+        .message.error {
+            background: #e74c3c;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Scoreboard Controller</h1>
+    <p>Paste the Profixio match URL to manage the scraper and generate stats.</p>
+
+        <div class="status-box">
+            <div><strong>Scraper status:</strong> <span id="status-text">Unknown</span></div>
+            <div id="status-url"></div>
+        </div>
+
+        <form id="control-form" onsubmit="return false;">
+            <label for="url-input">Match URL</label>
+            <input type="text" id="url-input" placeholder="https://www.profixio.com/..." required>
+
+            <div class="button-row">
+                <button type="button" id="start-btn">Start Scraper</button>
+                <button type="button" class="danger" id="stop-btn">Stop Scraper</button>
+                <button type="button" class="secondary" id="stats-btn">Generate Stats</button>
+            </div>
+        </form>
+
+        <div id="message" class="message" style="display:none;"></div>
+    <div id="stats-link" style="margin-top:10px;"></div>
+
+        <div>
+            <h2>Latest status log</h2>
+            <div id="log-box" class="log">Loading status...</div>
+        </div>
+    </div>
+
+    <script>
+        const statusText = document.getElementById('status-text');
+        const statusUrl = document.getElementById('status-url');
+        const logBox = document.getElementById('log-box');
+        const messageBox = document.getElementById('message');
+        const urlInput = document.getElementById('url-input');
+    const statsLink = document.getElementById('stats-link');
+
+        function showMessage(text, type) {
+            messageBox.textContent = text;
+            messageBox.className = 'message ' + type;
+            messageBox.style.display = 'block';
+        }
+
+        function clearMessage() {
+            messageBox.textContent = '';
+            messageBox.style.display = 'none';
+        }
+
+        async function fetchStatus() {
+            try {
+                const response = await fetch('/api/scraper/status');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch status');
+                }
+                const data = await response.json();
+                statusText.textContent = data.running ? 'Running' : 'Stopped';
+                statusUrl.textContent = data.running && data.url ? 'Current URL: ' + data.url : '';
+                logBox.textContent = data.log || 'No recent log entries';
+            } catch (error) {
+                statusText.textContent = 'Error';
+                statusUrl.textContent = '';
+                logBox.textContent = error.message;
+            }
+        }
+
+        function setStatsLink(href) {
+            if (!href) {
+                statsLink.innerHTML = '';
+                return;
+            }
+            statsLink.innerHTML = `<a href="${href}" target="_blank" rel="noopener">Open generated stats</a>`;
+        }
+
+        async function postForm(path, payload, onSuccess) {
+            clearMessage();
+            if (!onSuccess) {
+                setStatsLink('');
+            }
+            const response = await fetch(path, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams(payload)
+            });
+            let data;
+            try {
+                data = await response.json();
+            } catch (err) {
+                showMessage('Unexpected response from server.', 'error');
+                return;
+            }
+            if (!response.ok) {
+                const errMsg = data.error || 'Request failed';
+                showMessage(errMsg, 'error');
+                if (onSuccess) {
+                    setStatsLink('');
+                }
+            } else {
+                const msg = data.status || 'Success';
+                showMessage(msg, 'success');
+                if (typeof onSuccess === 'function') {
+                    onSuccess(data);
+                }
+            }
+            fetchStatus();
+        }
+
+        document.getElementById('start-btn').addEventListener('click', () => {
+            postForm('/api/scraper/start', {
+                url: urlInput.value
+            });
+        });
+
+        document.getElementById('stop-btn').addEventListener('click', () => {
+            postForm('/api/scraper/stop', {});
+        });
+
+        document.getElementById('stats-btn').addEventListener('click', () => {
+            const payload = {
+                source: urlInput.value
+            };
+            postForm('/api/stats/generate', payload, (data) => {
+                let output = data.output || '';
+                if (output.startsWith('html/')) {
+                    output = output.substring(5);
+                }
+                if (output && !output.startsWith('/')) {
+                    output = '/' + output;
+                }
+                setStatsLink(output);
+            });
+        });
+
+        fetchStatus();
+        setInterval(fetchStatus, 5000);
+    </script>
+</body>
+</html>
