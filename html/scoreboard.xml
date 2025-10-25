@@ -1,5 +1,4 @@
-<div xmlns="http://www.w3.org/1999/xhtml">
-    <div id="scoreboard" class="scoreboard">
+<div xmlns="http://www.w3.org/1999/xhtml" id="scoreboard" class="scoreboard">
         <div class="home">
             <div id="home_set" class="set">1</div>
             <div id="home_color" class="color" style="background: rgb(0, 0, 255);"> </div>
@@ -12,7 +11,6 @@
             <div id="away_color" class="color" style="background: rgb(0, 0, 128);"> </div>
             <div id="away_team" class="team" contenteditable="true">Gislaveds VBK C</div>
             <div id="away_serve" class="serve serving"> </div>
-            <div id="away_score" class="score">9</div>
+            <div id="away_score" class="score">7</div>
         </div>
     </div>
-</div>

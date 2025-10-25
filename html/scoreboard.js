@@ -22,10 +22,7 @@ function undo(evt) {
         redoable_scoreboards.push(XML_SERIALIZER.serializeToString(document.getElementById('scoreboard')));
         document.getElementById('redo').classList.add('redo');
         var doc = DOM_PARSER.parseFromString(last_scoreboard, 'text/xml');
-        var parsed = doc.getElementById('scoreboard');
-        if (parsed) {
-            document.getElementById('scoreboard').replaceWith(parsed.cloneNode(true));      
-        }
+        document.getElementById('scoreboard').replaceWith(doc.getElementById('scoreboard'));        
         get_position();
         update_colors();
         add_scoreboard_listeners();
@@ -39,10 +36,7 @@ function redo(evt) {
         undoable_scoreboards.push(XML_SERIALIZER.serializeToString(document.getElementById('scoreboard')));
         document.getElementById('undo').classList.add('undo');
         var doc = DOM_PARSER.parseFromString(last_scoreboard, 'text/xml');
-        var parsed = doc.getElementById('scoreboard');
-        if (parsed) {
-            document.getElementById('scoreboard').replaceWith(parsed.cloneNode(true));    
-        }
+        document.getElementById('scoreboard').replaceWith(doc.getElementById('scoreboard')); 
         get_position();
         update_colors();
         add_scoreboard_listeners();    
