@@ -1,0 +1,14 @@
+{
+  "users": {
+    "lars": {
+      "password_hash": "pbkdf2:sha256:600000$...",
+      "token": "your_secure_token_here",
+      "display_name": "Lars"
+    },
+    "testuser": {
+      "password_hash": "pbkdf2:sha256:600000$...",
+      "token": "another_secure_token",
+      "display_name": "Test User"
+    }
+  }
+}

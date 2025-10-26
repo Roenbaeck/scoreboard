@@ -5,9 +5,13 @@ const current_position = { top: 0, bottom: null, left: null, right: 0 };
 const DOM_PARSER = new DOMParser();
 const XML_SERIALIZER = new XMLSerializer();
 
-// Configuration
-const TOKEN = 'your_secure_token_here';  // Change this to your secure token
-const SCOREBOARD_STORAGE_KEY = 'scoreboard';
+// Configuration - extract username from URL path
+const USERNAME = window.location.pathname.split('/')[1] || 'default';
+const TOKEN = 'SET_BY_SERVER';  // This will be set dynamically
+const SCOREBOARD_STORAGE_KEY = `scoreboard_${USERNAME}`;
+
+// Inject token from server (will be set via script tag in HTML)
+window.SCOREBOARD_TOKEN = window.SCOREBOARD_TOKEN || TOKEN;
 
 function save_state(clear) {
     if(clear == true) undoable_scoreboards.length = 0;
@@ -50,8 +54,8 @@ function upload() {
     var data = new FormData();
     data.append('filedata', scoreboard);
     data.append('filename', 'scoreboard.xml');
-    data.append('token', TOKEN);  // Use the configured token
-    fetch('upload.php', {
+    data.append('token', window.SCOREBOARD_TOKEN || TOKEN);  // Use dynamic token
+    fetch(`/${USERNAME}/upload.php`, {
         method: 'POST',
         body: data
     });
@@ -149,7 +153,7 @@ function get_position() {
 async function load_initial_scoreboard() {
     const cacheBuster = Date.now();
     try {
-        const response = await fetch(`scoreboard.xml?ts=${cacheBuster}`, { cache: 'no-store' });
+        const response = await fetch(`/${USERNAME}/scoreboard.xml?ts=${cacheBuster}`, { cache: 'no-store' });
         if (response.ok) {
             const text = await response.text();
             if (text) {
