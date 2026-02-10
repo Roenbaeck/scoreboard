@@ -230,7 +230,7 @@
                     output = output.substring(5);
                 }
                 if (output && !output.startsWith('/')) {
-                    output = '/' + output;
+                    output = `/${USERNAME}/${output}`;
                 }
                 setStatsLink(output);
             });
