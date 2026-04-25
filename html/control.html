@@ -189,6 +189,11 @@
             messageBox.style.display = 'none';
         }
 
+        function redirectToLogin() {
+            const next = encodeURIComponent(window.location.pathname + window.location.search);
+            window.location.href = `/login?next=${next}`;
+        }
+
         function setLineupMode(mode) {
             const normalized = ['auto', 'show', 'hide'].includes(mode) ? mode : 'auto';
             lineupModeText.textContent = normalized.charAt(0).toUpperCase() + normalized.slice(1);
@@ -207,6 +212,10 @@
                 const response = await fetch(`/${USERNAME}/api/scraper/status`, {
                     credentials: 'same-origin'
                 });
+                if (response.status === 403) {
+                    redirectToLogin();
+                    return;
+                }
                 if (!response.ok) {
                     throw new Error('Failed to fetch status');
                 }
@@ -235,6 +244,10 @@
                     },
                     body: new URLSearchParams({ mode })
                 });
+                if (response.status === 403) {
+                    redirectToLogin();
+                    return;
+                }
                 const contentType = response.headers.get('content-type') || '';
                 let data = null;
                 if (contentType.includes('application/json')) {
@@ -281,6 +294,10 @@
                 },
                 body: new URLSearchParams(payload)
             });
+            if (response.status === 403) {
+                redirectToLogin();
+                return;
+            }
             const contentType = response.headers.get('content-type') || '';
             let data = null;
             if (contentType.includes('application/json')) {
@@ -344,6 +361,10 @@
                     method: 'POST',
                     credentials: 'same-origin'
                 });
+                if (response.status === 403) {
+                    redirectToLogin();
+                    return;
+                }
                 if (!response.ok) {
                     showMessage('Could not stop scraper automatically, continuing to manual mode.', 'error');
                 }
