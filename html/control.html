@@ -232,7 +232,14 @@
                     },
                     body: new URLSearchParams({ mode })
                 });
-                const data = await response.json();
+                const contentType = response.headers.get('content-type') || '';
+                let data = null;
+                if (contentType.includes('application/json')) {
+                    data = await response.json();
+                } else {
+                    const text = await response.text();
+                    throw new Error(text || `Request failed with status ${response.status}`);
+                }
                 if (!response.ok) {
                     showMessage(data.error || 'Failed to update lineup mode.', 'error');
                     return;
@@ -241,7 +248,8 @@
                 showMessage(`Lineup mode set to ${data.lineup_mode}.`, 'success');
                 fetchStatus();
             } catch (error) {
-                showMessage('Network error updating lineup mode.', 'error');
+                const message = (error && error.message) ? error.message : 'Network error updating lineup mode.';
+                showMessage(message, 'error');
             } finally {
                 Object.values(lineupButtons).forEach((button) => {
                     button.disabled = false;
