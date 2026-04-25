@@ -110,17 +110,22 @@ def _get_user_data_dir(username):
 def _get_user_state(username):
     """Get or create scraper state for a user."""
     with SCRAPER_LOCK:
+        user_data_dir = _get_user_data_dir(username)
+        os.makedirs(user_data_dir, exist_ok=True)
+        default_state = {
+            'process': None,
+            'url': None,
+            'log_handle': None,
+            'log_path': os.path.join(user_data_dir, 'scraper.log'),
+            'started_at': None,
+            'lineup_mode_path': os.path.join(user_data_dir, 'lineup_mode.txt')
+        }
         if username not in SCRAPER_STATES:
-            user_data_dir = _get_user_data_dir(username)
-            os.makedirs(user_data_dir, exist_ok=True)
-            SCRAPER_STATES[username] = {
-                'process': None,
-                'url': None,
-                'log_handle': None,
-                'log_path': os.path.join(user_data_dir, 'scraper.log'),
-                'started_at': None,
-                'lineup_mode_path': os.path.join(user_data_dir, 'lineup_mode.txt')
-            }
+            SCRAPER_STATES[username] = default_state
+        else:
+            state = SCRAPER_STATES[username]
+            for key, value in default_state.items():
+                state.setdefault(key, value)
         return SCRAPER_STATES[username]
 
 def _normalize_lineup_mode(value):

@@ -281,11 +281,18 @@
                 },
                 body: new URLSearchParams(payload)
             });
-            let data;
-            try {
-                data = await response.json();
-            } catch (err) {
-                showMessage('Unexpected response from server.', 'error');
+            const contentType = response.headers.get('content-type') || '';
+            let data = null;
+            if (contentType.includes('application/json')) {
+                try {
+                    data = await response.json();
+                } catch (err) {
+                    showMessage('Unexpected response from server.', 'error');
+                    return;
+                }
+            } else {
+                const text = await response.text();
+                showMessage(text || `Unexpected response from server (${response.status}).`, 'error');
                 return;
             }
             if (!response.ok) {
