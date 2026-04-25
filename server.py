@@ -118,9 +118,38 @@ def _get_user_state(username):
                 'url': None,
                 'log_handle': None,
                 'log_path': os.path.join(user_data_dir, 'scraper.log'),
-                'started_at': None
+                'started_at': None,
+                'lineup_mode_path': os.path.join(user_data_dir, 'lineup_mode.txt')
             }
         return SCRAPER_STATES[username]
+
+def _normalize_lineup_mode(value):
+    mode = (value or 'auto').strip().lower()
+    if mode not in {'auto', 'show', 'hide'}:
+        return 'auto'
+    return mode
+
+def _read_lineup_mode(state):
+    mode_path = state.get('lineup_mode_path')
+    if not mode_path or not os.path.exists(mode_path):
+        return 'auto'
+    try:
+        with open(mode_path, 'r', encoding='utf-8') as fh:
+            return _normalize_lineup_mode(fh.read())
+    except OSError:
+        return 'auto'
+
+def _write_lineup_mode(state, mode):
+    normalized = _normalize_lineup_mode(mode)
+    mode_path = state.get('lineup_mode_path')
+    if not mode_path:
+        return normalized
+    try:
+        with open(mode_path, 'w', encoding='utf-8') as fh:
+            fh.write(normalized)
+    except OSError:
+        pass
+    return normalized
 
 def _is_scraper_running_unlocked(state):
     process = state.get('process')
@@ -366,8 +395,29 @@ def user_scraper_status(username):
             'running': running,
             'url': state.get('url') if running else None,
             'started_at': state.get('started_at'),
-            'log': _read_log_tail(state.get('log_path'))
+            'log': _read_log_tail(state.get('log_path')),
+            'lineup_mode': _read_lineup_mode(state)
         })
+
+@app.route('/<username>/api/lineup-mode', methods=['POST'])
+def user_lineup_mode(username):
+    """Set lineup visibility override mode for a user."""
+    if not validate_username(username) or not get_user(username):
+        abort(404)
+    _require_user_access(username)
+
+    requested_mode = request.values.get('mode')
+    if requested_mode is None:
+        return jsonify({'error': 'Missing mode parameter'}), 400
+
+    state = _get_user_state(username)
+    with SCRAPER_LOCK:
+        mode = _write_lineup_mode(state, requested_mode)
+
+    return jsonify({
+        'status': 'updated',
+        'lineup_mode': mode
+    })
 
 @app.route('/<username>/api/scraper/start', methods=['POST'])
 def user_scraper_start(username):
@@ -392,10 +442,18 @@ def user_scraper_start(username):
         log_handle.flush()
 
         output_xml = os.path.join(user_data_dir, 'scoreboard.xml')
-        cmd = [sys.executable, 'scraper.py', match_url, '--daemon', '--output', output_xml]
+        cmd = [
+            sys.executable,
+            'scraper.py',
+            match_url,
+            '--daemon',
+            '--output', output_xml,
+            '--lineup-mode-file', state['lineup_mode_path']
+        ]
         process = subprocess.Popen(
             cmd,
             cwd=BASE_DIR,
+            stdin=subprocess.DEVNULL,
             stdout=log_handle,
             stderr=log_handle
         )

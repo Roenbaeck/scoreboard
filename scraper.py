@@ -418,7 +418,8 @@ def extract_match_state(api_data, team_color_name_map=None, force_lineup=False):
                 return 999
         home_lineup.sort(key=sort_key)
         away_lineup.sort(key=sort_key)
-        lineup_data = {'home': home_lineup, 'away': away_lineup}
+        if home_lineup or away_lineup:
+            lineup_data = {'home': home_lineup, 'away': away_lineup}
 
     # Detect if match has a terminating event
     match_ended = any((e.get('stopsMatch') is True) for e in events) if isinstance(events, list) else False
@@ -498,6 +499,20 @@ def extract_match_state(api_data, team_color_name_map=None, force_lineup=False):
     except Exception:
         state['setScores'] = []
     return state
+
+
+def read_lineup_mode(mode_path):
+    """Read lineup override mode from a sidecar file."""
+    if not mode_path:
+        return 'auto'
+    try:
+        with open(mode_path, 'r', encoding='utf-8') as fh:
+            mode = fh.read().strip().lower()
+    except OSError:
+        return 'auto'
+    if mode not in {'auto', 'show', 'hide'}:
+        return 'auto'
+    return mode
 
 
 def hex_to_rgb_tuple(hex_color):
@@ -657,6 +672,7 @@ def main(argv=None):
     parser.add_argument("--no-summary", action="store_true", help="Suppress textual summary output (useful in daemon mode)")
     parser.add_argument("--dump-json", help="If set, write the latest raw API JSON to this file for debugging home/away mapping.")
     parser.add_argument("--force-lineup", action="store_true", help="Force display of lineups even if match has started.")
+    parser.add_argument("--lineup-mode-file", help="Path to a file containing lineup mode: auto, show, or hide.")
     parser.add_argument("--show-ended-sets", action="store_true", help="Show scores from previously completed sets.")
     args = parser.parse_args(argv)
 
@@ -700,7 +716,12 @@ def main(argv=None):
             if not args.no_summary:
                 match_summary = parse_volleyball_data(api_data, team_color_map)
                 print(match_summary)
-            state = extract_match_state(api_data, team_color_map, force_lineup=args.force_lineup)
+            lineup_mode = read_lineup_mode(args.lineup_mode_file)
+            force_lineup = args.force_lineup or lineup_mode == 'show'
+            state = extract_match_state(api_data, team_color_map, force_lineup=force_lineup)
+            if lineup_mode == 'hide' and state:
+                state.pop('lineup', None)
+                state['forceLineup'] = False
             if state:
                 write_scoreboard_xml(state, args.output, args.show_ended_sets)
                 print(f"Scoreboard written to {args.output}")
@@ -743,7 +764,12 @@ def main(argv=None):
                         json.dump(api_data, jf, ensure_ascii=False, indent=2)
                 except OSError:
                     pass
-            state = extract_match_state(api_data, team_color_map, force_lineup=args.force_lineup)
+            lineup_mode = read_lineup_mode(args.lineup_mode_file)
+            force_lineup = args.force_lineup or lineup_mode == 'show'
+            state = extract_match_state(api_data, team_color_map, force_lineup=force_lineup)
+            if lineup_mode == 'hide' and state:
+                state.pop('lineup', None)
+                state['forceLineup'] = False
             if state:
                 if write_scoreboard_xml(state, args.output, args.show_ended_sets):
                     if cycles % 10 == 0:  # reduce chatter
