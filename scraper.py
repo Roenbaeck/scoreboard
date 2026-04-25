@@ -622,44 +622,34 @@ def write_scoreboard_xml(state, output_path, show_ended_sets=False):
     if 'lineup' in state and (state.get('forceLineup', False) or not state.get('matchStarted', True)):
         home_players = [player for player in state['lineup']['home'] if (player.get('name') or '').strip()]
         away_players = [player for player in state['lineup']['away'] if (player.get('name') or '').strip()]
-        if not home_players and not away_players:
-            xml_parts.append('</div>')
-            xml_content = '\n'.join(xml_parts)
-            tmp_path = output_path + '.tmp'
-            try:
-                with open(tmp_path, 'w', encoding='utf-8') as f:
-                    f.write(xml_content)
-                os.replace(tmp_path, output_path)
-                return True
-            except OSError as e:
-                print(f"Failed writing scoreboard XML: {e}")
-                return False
-        xml_parts.append('    <div id="lineup" class="lineup">')
-        if home_players:
-            xml_parts.append('        <div class="home_team">')
-            xml_parts.append(f'            <div id="home_team_name" class="team_name">{home.get("name","Home")}</div>')
-            xml_parts.append('            <div id="home_lineup" class="home_lineup">')
-            for player in home_players:
-                libero_class = ' libero' if player.get('libero') else ''
-                xml_parts.append(f'                <div class="player{libero_class}">')
-                xml_parts.append(f'                    <div class="number">{player["number"]}</div>')
-                xml_parts.append(f'                    <div class="name">{player["name"]}</div>')
-                xml_parts.append('                </div>')
-            xml_parts.append('            </div>')
-            xml_parts.append('        </div>')
-        if away_players:
-            xml_parts.append('        <div class="away_team">')
-            xml_parts.append(f'            <div id="away_team_name" class="team_name">{away.get("name","Away")}</div>')
-            xml_parts.append('            <div id="away_lineup" class="away_lineup">')
-            for player in away_players:
-                libero_class = ' libero' if player.get('libero') else ''
-                xml_parts.append(f'                <div class="player{libero_class}">')
-                xml_parts.append(f'                    <div class="number">{player["number"]}</div>')
-                xml_parts.append(f'                    <div class="name">{player["name"]}</div>')
-                xml_parts.append('                </div>')
-            xml_parts.append('            </div>')
-            xml_parts.append('        </div>')
-        xml_parts.append('    </div>')
+        total_players = len(home_players) + len(away_players)
+        if total_players > 0:
+            xml_parts.append('    <div id="lineup" class="lineup">')
+            if home_players:
+                xml_parts.append('        <div class="home_team">')
+                xml_parts.append(f'            <div id="home_team_name" class="team_name">{home.get("name","Home")}</div>')
+                xml_parts.append('            <div id="home_lineup" class="home_lineup">')
+                for player in home_players:
+                    libero_class = ' libero' if player.get('libero') else ''
+                    xml_parts.append(f'                <div class="player{libero_class}">')
+                    xml_parts.append(f'                    <div class="number">{player["number"]}</div>')
+                    xml_parts.append(f'                    <div class="name">{player["name"]}</div>')
+                    xml_parts.append('                </div>')
+                xml_parts.append('            </div>')
+                xml_parts.append('        </div>')
+            if away_players:
+                xml_parts.append('        <div class="away_team">')
+                xml_parts.append(f'            <div id="away_team_name" class="team_name">{away.get("name","Away")}</div>')
+                xml_parts.append('            <div id="away_lineup" class="away_lineup">')
+                for player in away_players:
+                    libero_class = ' libero' if player.get('libero') else ''
+                    xml_parts.append(f'                <div class="player{libero_class}">')
+                    xml_parts.append(f'                    <div class="number">{player["number"]}</div>')
+                    xml_parts.append(f'                    <div class="name">{player["name"]}</div>')
+                    xml_parts.append('                </div>')
+                xml_parts.append('            </div>')
+                xml_parts.append('        </div>')
+            xml_parts.append('    </div>')
     xml_parts.append('</div>')
     xml_content = '\n'.join(xml_parts)
     tmp_path = output_path + '.tmp'
