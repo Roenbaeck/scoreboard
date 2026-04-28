@@ -237,6 +237,12 @@ def _get_current_user():
 def _redirect_to_login():
     return redirect(url_for('login', next=request.path))
 
+@app.errorhandler(403)
+def handle_forbidden(e):
+    if not _is_authenticated():
+        return _redirect_to_login()
+    return '<h1>Forbidden</h1><p>You don\'t have permission to access this resource.</p>', 403
+
 def _require_user_access(username):
     """Ensure logged-in user matches the requested username."""
     current_user = _get_current_user()
