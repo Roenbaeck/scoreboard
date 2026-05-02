@@ -32,6 +32,7 @@ body {
     display: table-cell;
 }
 .theme-default .team {
+    color: inherit;
     position: relative;
     padding-left: 0.8vmax;
     padding-right: 1.6vmax;
@@ -214,6 +215,7 @@ body {
 
 /* Team name bold, slightly condensed spacing */
 .theme-modern .team {
+    color: var(--color-text);
     font-weight: 900;
     letter-spacing: 0.01em;
     padding: 0 0.5vmax;
