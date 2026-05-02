@@ -118,6 +118,11 @@ function set_color(evt) {
     document.getElementById(team_color).style.background = evt.currentTarget.value;
     upload();
 }
+function handle_paste(evt) {
+    evt.preventDefault();
+    var text = (evt.clipboardData || window.clipboardData).getData('text/plain');
+    document.execCommand('insertText', false, text);
+}
 function save_team(evt) {
     save_state(false);
 }
@@ -251,8 +256,10 @@ function add_scoreboard_listeners() {
     document.getElementById('away_color_picker').addEventListener('change', set_color);
     document.getElementById('home_team').addEventListener('focus', save_team);
     document.getElementById('home_team').addEventListener('blur', update_team);
+    document.getElementById('home_team').addEventListener('paste', handle_paste);
     document.getElementById('away_team').addEventListener('focus', save_team);
     document.getElementById('away_team').addEventListener('blur', update_team);
+    document.getElementById('away_team').addEventListener('paste', handle_paste);
 }
 window.addEventListener('scroll', function(evt) {
     if (!document.activeElement || document.activeElement === document.body) {
