@@ -5,10 +5,16 @@ Usage: python3 generate_password.py <password>
 """
 import sys
 from werkzeug.security import generate_password_hash
+from password_support import require_password_hashing
 
 if len(sys.argv) < 2:
     print("Usage: python3 generate_password.py <password>")
     sys.exit(1)
+
+try:
+    require_password_hashing()
+except RuntimeError as error:
+    sys.exit(str(error))
 
 password = sys.argv[1]
 hash_value = generate_password_hash(password, method='pbkdf2:sha256')

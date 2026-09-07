@@ -23,6 +23,10 @@ Install required Python packages:
 pip install flask waitress requests beautifulsoup4 lxml werkzeug
 ```
 
+Python must provide `hashlib.pbkdf2_hmac` for password generation and login.
+On Python 3.12 and later, this requires working OpenSSL support (see
+[Python's hashlib documentation](https://docs.python.org/3/library/hashlib.html#hashlib.pbkdf2_hmac)).
+
 ### Setup
 
 1. **Clone the repository**:
@@ -68,6 +72,48 @@ pip install flask waitress requests beautifulsoup4 lxml werkzeug
    - Control panel: http://localhost:8081/yourusername/control
    - Manual scoreboard: http://localhost:8081/yourusername/scoreboard.html
    - Overlay: http://localhost:8081/yourusername/overlay/
+
+## Troubleshooting
+
+### Login fails with `hashlib` has no attribute `pbkdf2_hmac`
+
+This means the Python interpreter running Scoreboard lacks the password-hashing
+function used by Werkzeug. On Python 3.12+, missing or unloadable OpenSSL support
+can cause this. The generated session-secret warning is unrelated.
+
+On Alpine Linux, update Python and its OpenSSL libraries from your configured
+repositories as root, then check that password hashing works:
+
+```sh
+apk update
+apk add --upgrade python3 libcrypto3 libssl3
+python3 -c 'import hashlib; hashlib.pbkdf2_hmac("sha256", b"test", b"salt", 1); print("PBKDF2 OK")'
+```
+
+If the check prints `PBKDF2 OK`, restart `python3 server.py` and log in using your
+existing password. No changes to `users.json` are needed. Scoreboard checks for
+this missing function at startup, including when imported by a WSGI server;
+the password generator also reports how to repair the runtime.
+
+If the check still fails, run these diagnostics with the same interpreter used
+to start the server:
+
+```sh
+python3 -c 'import sys, hashlib; print(sys.executable); print(sys.version); print(hashlib.__file__)'
+python3 -c 'import _hashlib'
+apk policy python3 libcrypto3 libssl3
+```
+
+The `_hashlib` import exposes missing libraries or incompatible symbols that
+`hashlib` can hide. If packaged files are missing or damaged, reinstall them with
+`apk fix python3 libcrypto3 libssl3`, then rerun the check. A custom-built Python
+needs to be rebuilt with OpenSSL support or replaced with Alpine's packaged
+interpreter. A local file named `hashlib.py` can also shadow the standard library;
+the diagnostic path above helps identify that case.
+
+See [Alpine's package-management documentation](https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper)
+for package repair commands. On other systems, repair the corresponding Python
+and OpenSSL packages or use a Python build with working OpenSSL support.
 
 ## Security
 

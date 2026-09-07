@@ -19,7 +19,11 @@ import json
 import re
 import secrets
 from collections import defaultdict
-from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.security import check_password_hash
+from password_support import require_password_hashing
+
+# Check before serving any requests, including when imported by a WSGI server.
+require_password_hashing()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, 'data')
