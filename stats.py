@@ -51,7 +51,7 @@ def parse_match_data(json_file):
         sys.exit(1)
 
 def fetch_match_data_from_url(page_url, dump_json_path=None):
-    """Given a Profixio competition page URL, find the API URL and fetch JSON.
+    """Given a Profixio match page URL, find the API URL and fetch JSON.
 
     Optionally writes the JSON to dump_json_path.
     """
@@ -60,7 +60,7 @@ def fetch_match_data_from_url(page_url, dump_json_path=None):
         sys.exit(2)
     api_url, _html = get_api_url(page_url)
     if not api_url:
-        print("Error: Could not locate API URL from page. Ensure the URL is a Profixio match page with expandmatch.")
+        print("Error: Could not locate API URL from page. Use a Profixio /app/lx/match/<matchId> or legacy expandmatch URL.")
         sys.exit(2)
     try:
         resp = requests.get(api_url, headers=HEADERS)
@@ -1008,7 +1008,7 @@ def print_usage():
 def main():
     """Main function."""
     parser = argparse.ArgumentParser(description='Analyze volleyball player statistics from Profixio JSON or match page URL')
-    parser.add_argument('source', help='Path to a JSON file OR a Profixio page URL (with expandmatch)')
+    parser.add_argument('source', help='Path to a JSON file OR a Profixio match page URL (/app/lx/match/<matchId> or legacy expandmatch)')
     parser.add_argument('--top', type=int, default=10, help='Number of top players to show in detailed breakdown (default: 10)')
     parser.add_argument('--min-points', type=int, default=0, help='Minimum points required to show player (default: 0)')
     parser.add_argument('--html', type=str, help='Generate HTML report and save to specified file (e.g., --html stats.html)')

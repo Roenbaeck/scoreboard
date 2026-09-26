@@ -13,6 +13,34 @@ HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
 }
 
+def get_match_id(url):
+    """Accept standalone match pages and legacy competition links."""
+    parsed = urlparse(url)
+    match = re.fullmatch(r'/app/lx/match/(\d+)/?', parsed.path)
+    if match:
+        return match.group(1)
+    query = {key.lower(): value for key, value in parse_qs(parsed.query).items()}
+    match_id = query.get('expandmatch', [''])[0]
+    return match_id if match_id.isdigit() else None
+
+
+def extract_match_live_config(html_content):
+    """Decode the new page's JSON.parse string without executing JavaScript."""
+    for raw in re.findall(r'\bx-data="([^"]*)"', html_content):
+        match = re.search(r"matchLive\(JSON\.parse\('([^']*)'\)\)", unescape(raw))
+        if not match:
+            continue
+        try:
+            # First decode the JS string, then the JSON it contains. Profixio
+            # escapes quotes as \u0022 and URL separators at both layers.
+            config = json.loads(json.loads('"' + match.group(1) + '"'))
+            if isinstance(config, dict):
+                return config
+        except (ValueError, TypeError):
+            continue
+    return {}
+
+
 def get_api_url(url):
     """Fetch HTML for the page and extract the Profixio match API URL plus raw HTML.
 
@@ -22,10 +50,15 @@ def get_api_url(url):
     html_content = ''
     try:
         print(f"Attempting to fetch content from: {url}")
-        response = requests.get(url, headers=HEADERS)
+        response = requests.get(url, headers=HEADERS, timeout=15)
         response.raise_for_status()
         html_content = response.text
         print("Successfully fetched HTML content.")
+
+        config = extract_match_live_config(html_content)
+        if isinstance(config.get('resyncUrl'), str) and config['resyncUrl']:
+            print("Found matchLive resync URL.")
+            return config['resyncUrl'], html_content
 
         print("Searching for all 'wire:effects' attributes...")
         matches = re.findall(r'wire:effects="([^"]+)"', html_content)
@@ -665,13 +698,13 @@ def write_scoreboard_xml(state, output_path, show_ended_sets=False):
 def main(argv=None):
     """Entry point for command-line execution.
 
-    The script now requires an explicit full Profixio competition page URL.
+    Accept a standalone match page or a legacy competition URL.
 
     Example:
-      python scraper.py https://www.profixio.com/app/lx/competition/leagueid17734?expandmatch=32334711
+      python scraper.py https://www.profixio.com/app/lx/match/32678592
     """
-    parser = argparse.ArgumentParser(description="Fetch / follow a volleyball match from a Profixio competition page URL.")
-    parser.add_argument("page_url", help="Full Profixio page URL containing ?expandmatch=<matchId>.")
+    parser = argparse.ArgumentParser(description="Fetch / follow a volleyball match from a Profixio match page URL.")
+    parser.add_argument("page_url", help="Profixio /app/lx/match/<matchId> URL or legacy URL containing ?expandmatch=<matchId>.")
     parser.add_argument("--daemon", action="store_true", help="Run continuously: refresh page every minute & poll API every second.")
     parser.add_argument("--page-refresh-interval", type=int, default=60, help="Seconds between refreshing original page (default: 60)")
     parser.add_argument("--api-interval", type=float, default=1.0, help="Seconds between API polls (default: 1.0)")
@@ -685,13 +718,9 @@ def main(argv=None):
 
     page_url = args.page_url.strip()
 
-    # Validate presence of expandmatch regardless of its position in query string
-    parsed = urlparse(page_url)
-    query_params = {k.lower(): v for k, v in parse_qs(parsed.query).items()}
-    if 'expandmatch' not in query_params or not query_params['expandmatch']:
-        parser.error("Provided URL must include an 'expandmatch' query parameter (e.g. ?expandmatch=123 or &expandmatch=123).")
-
-    match_id = query_params['expandmatch'][0]
+    match_id = get_match_id(page_url)
+    if not match_id:
+        parser.error("Provided URL must use /app/lx/match/<matchId> or include ?expandmatch=<matchId>.")
     print(f"Using page URL: {page_url} (match id: {match_id})")
 
     def single_cycle():

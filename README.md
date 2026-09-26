@@ -7,7 +7,7 @@ A multi-user web-based scoreboard application designed for volleyball games. It 
 ## Features
 
 - **Multi-user support**: Each user has isolated data and can run independent scrapers
-- **Automated scraping**: Fetch live scores from Profixio match URLs
+- **Automated scraping**: Fetch live scores from Profixio match URLs, including `https://www.profixio.com/app/lx/match/32678592` and legacy competition URLs with `?expandmatch=<matchId>`
 - **Manual control**: Real-time score updates with undo/redo functionality
 - **Stats generation**: Automatic player statistics from match data
 - **Customizable**: Team names, colors, and position adjustments
