@@ -4,6 +4,7 @@ import json
 import argparse
 import time
 import os
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from urllib.parse import urlparse, parse_qs
 from html import unescape
@@ -127,6 +128,52 @@ def extract_team_colors(html_content):
     else:
         print("No team information could be extracted.")
     return team_map
+
+def legacy_color_url(page_url, html_content):
+    """Derive the legacy view from an actual team link on this match page."""
+    if not re.fullmatch(r'/app/lx/match/\d+/?', urlparse(page_url).path):
+        return None
+    match = re.search(r'href="https://www\.profixio\.com(/app/lx/competition/[^/"?]+)(?:/teams/\d+)?"', html_content)
+    if match:
+        return 'https://www.profixio.com' + match.group(1) + '?expandmatch=' + get_match_id(page_url)
+    return None
+
+
+def fetch_legacy_colors(url):
+    """Optional lookup: failures must never stop score polling."""
+    try:
+        response = requests.get(url, headers=HEADERS, timeout=3)
+        response.raise_for_status()
+        return extract_team_colors(response.text)
+    except Exception as exc:
+        print(f"Optional jersey color lookup unavailable: {exc}")
+        return {}
+
+
+def merge_team_colors(teams, colors):
+    # Match by team ID; never replace names or home/away ordering.
+    for tid, entry in teams.items():
+        color = colors.get(tid, {}).get('color', '')
+        if isinstance(color, str) and re.fullmatch(r'#[0-9a-fA-F]{6}', color):
+            entry['color'] = color.upper()
+    return teams
+
+
+def apply_color_overrides(state, path):
+    if not state or not path:
+        return
+    try:
+        with open(path, encoding='utf-8') as fh:
+            colors = json.load(fh)
+        if not isinstance(colors, dict):
+            return
+        for side in ('home', 'away'):
+            color = colors.get(side)
+            if isinstance(color, str) and re.fullmatch(r'#[0-9a-fA-F]{6}', color):
+                state[side]['color'] = color.upper()
+    except (OSError, ValueError):
+        pass
+
 
 def parse_volleyball_data(api_data, team_color_name_map=None):
     """
@@ -713,6 +760,7 @@ def main(argv=None):
     parser.add_argument("--dump-json", help="If set, write the latest raw API JSON to this file for debugging home/away mapping.")
     parser.add_argument("--force-lineup", action="store_true", help="Force display of lineups even if match has started.")
     parser.add_argument("--lineup-mode-file", help="Path to a file containing lineup mode: auto, show, or hide.")
+    parser.add_argument("--color-overrides-file", help="JSON file with optional home/away hex colors; reloaded on each poll.")
     parser.add_argument("--show-ended-sets", action="store_true", help="Show scores from previously completed sets.")
     args = parser.parse_args(argv)
 
@@ -723,8 +771,12 @@ def main(argv=None):
         parser.error("Provided URL must use /app/lx/match/<matchId> or include ?expandmatch=<matchId>.")
     print(f"Using page URL: {page_url} (match id: {match_id})")
 
+    color_url = None
+
     def single_cycle():
+        nonlocal color_url
         api_url_local, html_content_local = get_api_url(page_url)
+        color_url = legacy_color_url(page_url, html_content_local) or color_url
         tcm = extract_team_colors(html_content_local)
         return api_url_local, tcm
 
@@ -738,6 +790,8 @@ def main(argv=None):
     last_page_refresh = time.time()
 
     if not args.daemon:
+        if color_url:
+            merge_team_colors(team_color_map, fetch_legacy_colors(color_url))
         try:
             api_response = requests.get(api_url, headers=HEADERS)
             api_response.raise_for_status()
@@ -755,6 +809,7 @@ def main(argv=None):
             lineup_mode = read_lineup_mode(args.lineup_mode_file)
             force_lineup = args.force_lineup or lineup_mode == 'show'
             state = extract_match_state(api_data, team_color_map, force_lineup=force_lineup)
+            apply_color_overrides(state, args.color_overrides_file)
             if lineup_mode == 'hide' and state:
                 state.pop('lineup', None)
                 state['forceLineup'] = False
@@ -772,8 +827,21 @@ def main(argv=None):
     # Daemon mode
     print("Entering daemon mode. Press Ctrl+C to stop.")
     cycles = 0
+    color_executor = ThreadPoolExecutor(max_workers=1)
+    color_future = None
+    last_color_lookup = 0
+    cached_colors = {}
     while True:
         now = time.time()
+        if color_future is not None and color_future.done():
+            for tid, entry in color_future.result().items():
+                cached_colors.setdefault(tid, {})
+                merge_team_colors(cached_colors, {tid: entry})
+            merge_team_colors(team_color_map, cached_colors)
+            color_future = None
+        if color_url and color_future is None and now - last_color_lookup >= 60:
+            color_future = color_executor.submit(fetch_legacy_colors, color_url)
+            last_color_lookup = now
         # Refresh page (API URL & team colors) if interval passed or API expired errors encountered
         if now - last_page_refresh >= args.page_refresh_interval:
             print("[Daemon] Refreshing original page for updated API URL & team colors...")
@@ -781,7 +849,8 @@ def main(argv=None):
             if new_api_url:
                 api_url = new_api_url
             if new_team_map:
-                team_color_map = new_team_map
+                merge_team_colors(new_team_map, team_color_map)
+                team_color_map = merge_team_colors(new_team_map, cached_colors)
             last_page_refresh = now
 
         try:
@@ -803,6 +872,7 @@ def main(argv=None):
             lineup_mode = read_lineup_mode(args.lineup_mode_file)
             force_lineup = args.force_lineup or lineup_mode == 'show'
             state = extract_match_state(api_data, team_color_map, force_lineup=force_lineup)
+            apply_color_overrides(state, args.color_overrides_file)
             if lineup_mode == 'hide' and state:
                 state.pop('lineup', None)
                 state['forceLineup'] = False
@@ -828,6 +898,7 @@ def main(argv=None):
         except KeyboardInterrupt:
             print("\nDaemon stopped by user.")
             break
+    color_executor.shutdown(wait=False)
     return 0
 
 

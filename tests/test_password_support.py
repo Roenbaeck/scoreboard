@@ -62,6 +62,29 @@ class PasswordSupportTests(unittest.TestCase):
         self.assertTrue(check_password_hash(password_hash, 'test-password'))
         self.assertFalse(check_password_hash(password_hash, 'wrong-password'))
 
+    def test_color_overrides_are_authenticated_validated_and_persisted(self):
+        (self.directory / 'users.json').write_text(json.dumps({'users': {
+            'test-user': {'password_hash': 'unused'}, 'other-user': {'password_hash': 'unused'},
+        }}))
+        namespace = runpy.run_path(str(self.directory / 'server.py'))
+        app = namespace['app']
+        app.config.update(TESTING=True, SECRET_KEY='test-session-secret')
+        client = app.test_client()
+        endpoint = '/test-user/api/jersey-colors'
+        self.assertEqual(client.post(endpoint, data={'home': '#123456'}).status_code, 302)
+        with client.session_transaction() as session:
+            session['username'] = 'test-user'
+        self.assertEqual(client.post('/other-user/api/jersey-colors', data={}, headers={'Accept': 'application/json'}).status_code, 403)
+        self.assertEqual(client.post(endpoint, data={'home': 'red'}).status_code, 400)
+        response = client.post(endpoint, data={'home': '#12ab34', 'away': ''})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json['color_overrides'], {'home': '#12AB34'})
+        path = self.directory / 'data/test-user/color_overrides.json'
+        self.assertEqual(json.loads(path.read_text()), {'home': '#12AB34'})
+        status = client.get('/test-user/api/scraper/status').json
+        self.assertEqual(status['color_overrides'], {'home': '#12AB34'})
+        self.assertEqual(client.post(endpoint, data={}).json['color_overrides'], {})
+
     def test_login_accepts_existing_hash_and_rejects_wrong_password(self):
         users = {'users': {'test-user': {
             'password_hash': generate_password_hash(

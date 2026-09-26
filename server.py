@@ -122,7 +122,8 @@ def _get_user_state(username):
             'log_handle': None,
             'log_path': os.path.join(user_data_dir, 'scraper.log'),
             'started_at': None,
-            'lineup_mode_path': os.path.join(user_data_dir, 'lineup_mode.txt')
+            'lineup_mode_path': os.path.join(user_data_dir, 'lineup_mode.txt'),
+            'color_overrides_path': os.path.join(user_data_dir, 'color_overrides.json')
         }
         if username not in SCRAPER_STATES:
             SCRAPER_STATES[username] = default_state
@@ -411,8 +412,43 @@ def user_scraper_status(username):
             'url': state.get('url') if running else None,
             'started_at': state.get('started_at'),
             'log': _read_log_tail(state.get('log_path')),
-            'lineup_mode': _read_lineup_mode(state)
+            'lineup_mode': _read_lineup_mode(state),
+            'color_overrides': _read_color_overrides(state)
         })
+
+def _read_color_overrides(state):
+    try:
+        with open(state['color_overrides_path'], encoding='utf-8') as fh:
+            colors = json.load(fh)
+        return {side: colors.get(side, '') for side in ('home', 'away')
+                if isinstance(colors.get(side), str) and re.fullmatch(r'#[0-9a-fA-F]{6}', colors[side])}
+    except (OSError, ValueError, AttributeError):
+        return {}
+
+
+@app.route('/<username>/api/jersey-colors', methods=['POST'])
+def user_jersey_colors(username):
+    if not validate_username(username) or not get_user(username):
+        abort(404)
+    _require_user_access(username)
+    colors = {}
+    for side in ('home', 'away'):
+        color = request.values.get(side, '').strip()
+        if color and not re.fullmatch(r'#[0-9a-fA-F]{6}', color):
+            return jsonify({'error': 'Colors must be #RRGGBB or empty for automatic.'}), 400
+        if color:
+            colors[side] = color.upper()
+    state = _get_user_state(username)
+    try:
+        with SCRAPER_LOCK:
+            path = state['color_overrides_path']
+            with open(path + '.tmp', 'w', encoding='utf-8') as fh:
+                json.dump(colors, fh)
+            os.replace(path + '.tmp', path)
+    except OSError:
+        return jsonify({'error': 'Could not save jersey colors.'}), 500
+    return jsonify({'status': 'Jersey colors saved.', 'color_overrides': colors})
+
 
 @app.route('/<username>/api/lineup-mode', methods=['POST'])
 def user_lineup_mode(username):
@@ -463,7 +499,8 @@ def user_scraper_start(username):
             match_url,
             '--daemon',
             '--output', output_xml,
-            '--lineup-mode-file', state['lineup_mode_path']
+            '--lineup-mode-file', state['lineup_mode_path'],
+            '--color-overrides-file', state['color_overrides_path']
         ]
         process = subprocess.Popen(
             cmd,

@@ -172,3 +172,9 @@ See [CHANGELOG.md](CHANGELOG.md) for detailed changes.
 Feel free to submit issues or pull requests for improvements.
 
 ![Example Overlay](PrismLive.png)
+
+### Jersey colors
+
+The scraper attempts a background lookup from the legacy Profixio match page once per minute. Missing pages, missing colors, and request failures do not stop score polling; previously found colors are retained.
+
+On the Control Panel, enable **Override home color** or **Override away color**, choose a color, and click **Save Colors**. Saved overrides take priority on each score update and persist per user across restarts and future matches. **Use Automatic Colors** clears both overrides. Restart an already-running scraper after upgrading to enable this feature.

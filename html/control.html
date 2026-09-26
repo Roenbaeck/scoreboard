@@ -125,6 +125,14 @@
             <div id="status-url"></div>
         </div>
 
+        <div class="status-box">
+            <label for="overlay-url">Overlay URL</label>
+            <p>Paste this URL into a browser source in your streaming software.</p>
+            <input type="text" id="overlay-url" readonly>
+            <button type="button" id="copy-overlay-btn">Copy Overlay URL</button>
+            <span id="overlay-copy-status" role="status" aria-live="polite"></span>
+        </div>
+
         <form id="control-form" onsubmit="return false;">
             <label for="url-input">Match URL</label>
             <input type="text" id="url-input" placeholder="https://www.profixio.com/..." required>
@@ -135,6 +143,25 @@
                 <button type="button" class="secondary" id="stats-btn">Generate Stats</button>
                 <button type="button" class="secondary" id="manual-btn">Go to Manual Scoring</button>
             </div>
+
+            <fieldset style="margin-top:20px; border:1px solid #ccc; border-radius:6px; padding:16px;">
+                <legend>Jersey colors</legend>
+                <p>Automatic colors use Profixio when available. Overrides apply on the next score update and stay saved for this user, including future matches.</p>
+                <div class="button-row">
+                    <div>
+                        <label><input type="checkbox" id="home-color-override"> Override home color</label>
+                        <input type="color" id="home-color" value="#000000" aria-label="Home jersey color" disabled>
+                    </div>
+                    <div>
+                        <label><input type="checkbox" id="away-color-override"> Override away color</label>
+                        <input type="color" id="away-color" value="#ff0000" aria-label="Away jersey color" disabled>
+                    </div>
+                </div>
+                <div class="button-row">
+                    <button type="button" id="save-colors-btn">Save Colors</button>
+                    <button type="button" class="secondary" id="auto-colors-btn">Use Automatic Colors</button>
+                </div>
+            </fieldset>
 
             <div class="lineup-controls">
                 <div class="lineup-status"><strong>Lineup mode:</strong> <span id="lineup-mode-text">Auto</span></div>
@@ -158,6 +185,21 @@
     <script>
         // Extract username from URL path
         const USERNAME = window.location.pathname.split('/')[1] || 'default';
+
+        const overlayUrl = document.getElementById('overlay-url');
+        const overlayCopyStatus = document.getElementById('overlay-copy-status');
+        overlayUrl.value = new URL(`/${USERNAME}/`, window.location.origin).href;
+        overlayUrl.addEventListener('click', () => overlayUrl.select());
+        document.getElementById('copy-overlay-btn').addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(overlayUrl.value);
+                overlayCopyStatus.textContent = 'Copied!';
+            } catch (error) {
+                overlayUrl.focus();
+                overlayUrl.select();
+                overlayCopyStatus.textContent = 'Select Copy from the menu, or press Ctrl+C / ⌘C.';
+            }
+        });
         
         const statusText = document.getElementById('status-text');
         const statusUrl = document.getElementById('status-url');
@@ -207,6 +249,41 @@
             });
         }
 
+        let colorsLoaded = false;
+        function setColors(colors) {
+            for (const side of ['home', 'away']) {
+                const enabled = document.getElementById(`${side}-color-override`);
+                const picker = document.getElementById(`${side}-color`);
+                enabled.checked = Boolean(colors[side]);
+                picker.disabled = !enabled.checked;
+                if (colors[side]) picker.value = colors[side];
+            }
+            colorsLoaded = true;
+        }
+        for (const side of ['home', 'away']) {
+            document.getElementById(`${side}-color-override`).addEventListener('change', (event) => {
+                document.getElementById(`${side}-color`).disabled = !event.target.checked;
+            });
+        }
+        async function saveColors(automatic = false) {
+            const buttons = ['save-colors-btn', 'auto-colors-btn'].map(id => document.getElementById(id));
+            buttons.forEach(button => button.disabled = true);
+            const payload = {};
+            for (const side of ['home', 'away']) {
+                payload[side] = !automatic && document.getElementById(`${side}-color-override`).checked
+                    ? document.getElementById(`${side}-color`).value : '';
+            }
+            try {
+                await postForm(`/${USERNAME}/api/jersey-colors`, payload, data => setColors(data.color_overrides));
+            } catch (error) {
+                showMessage('Could not save jersey colors. Please try again.', 'error');
+            } finally {
+                buttons.forEach(button => button.disabled = false);
+            }
+        }
+        document.getElementById('save-colors-btn').addEventListener('click', () => saveColors());
+        document.getElementById('auto-colors-btn').addEventListener('click', () => saveColors(true));
+
         async function fetchStatus() {
             try {
                 const response = await fetch(`/${USERNAME}/api/scraper/status`, {
@@ -224,6 +301,7 @@
                 statusUrl.textContent = data.running && data.url ? 'Current URL: ' + data.url : '';
                 logBox.textContent = data.log || 'No recent log entries';
                 setLineupMode(data.lineup_mode);
+                if (!colorsLoaded) setColors(data.color_overrides || {});
             } catch (error) {
                 statusText.textContent = 'Error';
                 statusUrl.textContent = '';
