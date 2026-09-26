@@ -10,9 +10,10 @@
         var current_scoreboard_xml;
         let highlightTimeout;
         window.addEventListener('load', function() {
-            // Set theme from URL parameter
+            // Modern is the default; ?theme=legacy selects the legacy layout.
+            // Keep old ?theme=default links working.
             const urlParams = new URLSearchParams(window.location.search);
-            const theme = urlParams.get('theme') || 'default';
+            const theme = ['legacy', 'default'].includes(urlParams.get('theme')) ? 'legacy' : 'modern';
             document.body.className = `theme-${theme}`;
 
             setInterval(() => {
@@ -52,7 +53,7 @@
         });
     </script>    
 </head>
-<body>
+<body class="theme-modern">
     <div id="content_wrapper" class="content_wrapper">
         <div id="scoreboard_wrapper" class="scoreboard_wrapper"></div>
         <div id="lineup_wrapper" class="lineup_wrapper"></div>

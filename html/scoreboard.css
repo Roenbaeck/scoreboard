@@ -4,17 +4,17 @@ body {
 }
 
 /* =============================================================
-   THEME: DEFAULT (legacy table layout)
-   Everything under .theme-default … applies when body has class
-   "theme-default" (set via index.html?theme=default`).
+   THEME: LEGACY (legacy table layout)
+   Everything under .theme-legacy … applies when body has class
+   "theme-legacy" (set via index.html?theme=legacy`).
    ============================================================= */
 
-/* Base positioning and typography for default theme */
-.theme-default .content_wrapper {
+/* Base positioning and typography for legacy theme */
+.theme-legacy .content_wrapper {
     font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
 }
 
-.theme-default .scoreboard {
+.theme-legacy .scoreboard {
     font-size: 2.2vmax;
     margin: 2.5vh 2.5vw 2.5vh 2.5vw; 
     display: table;
@@ -25,26 +25,26 @@ body {
     background: rgba(45, 29, 29, 0.5);
     background: oklch(25% 0.025 20 / 50%);
 }
-.theme-default .home, .theme-default .away {
+.theme-legacy .home, .theme-legacy .away {
     display: table-row;
 }
-.theme-default .set, .theme-default .color, .theme-default .team, .theme-default .serve, .theme-default .score {
+.theme-legacy .set, .theme-legacy .color, .theme-legacy .team, .theme-legacy .serve, .theme-legacy .score {
     display: table-cell;
 }
-.theme-default .team {
+.theme-legacy .team {
     color: inherit;
     position: relative;
     padding-left: 0.8vmax;
     padding-right: 1.6vmax;
     text-align: left;
 }
-.theme-default .score {
+.theme-legacy .score {
     padding-left: 0.8vmax;
     padding-right: 0.4vmax;
     font-weight: bold;
     text-align: right;
 }
-.theme-default .set {
+.theme-legacy .set {
     text-align: left;
     padding-left: 0.4vmax;
     padding-right: 0.8vmax;
@@ -52,22 +52,22 @@ body {
     color: black;
     color: oklch(0% 0 0);
 }
-.theme-default .color {
+.theme-legacy .color {
     width: 0.8vmax;
 }
-.theme-default .serve {
+.theme-legacy .serve {
     aspect-ratio: 1/1;
     min-width: 1em;
     width: 1em;    
 }
-.theme-default .serving {
+.theme-legacy .serving {
     background-image: url("volleyball.png");
     background-position: center; 
     background-repeat: no-repeat; 
     background-size: contain; 
     aspect-ratio: 1 / 1;
 }
-.theme-default .ended {
+.theme-legacy .ended {
     display: table-cell;
     padding-right: 0.4vmax;
     text-align: center;
@@ -76,21 +76,21 @@ body {
     color: white;
     color: oklch(100% 0 0);
 }
-.theme-default .home .ended { 
+.theme-legacy .home .ended {
     vertical-align: bottom; 
     padding-bottom: 0.2vmax;
 }
-.theme-default .away .ended { 
+.theme-legacy .away .ended {
     vertical-align: top; 
     padding-top: 0.2vmax;
 }
-.theme-default .ended-sets {
+.theme-legacy .ended-sets {
     display: contents; 
 }
-.theme-default .ended-sets .ended:first-child {
+.theme-legacy .ended-sets .ended:first-child {
     padding-left: 0.8vmax;
 }
-.theme-default .lineup {
+.theme-legacy .lineup {
     display: table;
     position: absolute;
     top: 16vh;
@@ -104,33 +104,33 @@ body {
     padding: 0.4vmax;
     border-radius: 0.8vmax;
 }
-.theme-default .home_team, .theme-default .away_team {
+.theme-legacy .home_team, .theme-legacy .away_team {
     display: table-cell;
     padding: 0 0.8vmax;
     vertical-align: top;
 }
-.theme-default .player {
+.theme-legacy .player {
     margin-bottom: 0.16em;
 }
-.theme-default .libero {
+.theme-legacy .libero {
     font-style: italic;
 }
-.theme-default .number {
+.theme-legacy .number {
     display: inline-block;
     width: 2em;
     text-align: right;
     margin-right: 0.5em;
 }
-.theme-default .name {
+.theme-legacy .name {
     display: inline-block;
 }
-.theme-default .team_name {
+.theme-legacy .team_name {
     font-size: 0.8em;
     text-align: center;
     margin: 0.4em 0;
     font-weight: bold;
 }
-.theme-default .highlight {
+.theme-legacy .highlight {
     position: absolute;
     bottom: 2.5vh;
     right: 2.5vw;
@@ -142,19 +142,19 @@ body {
     border-radius: 0.8vmax;
     text-align: center;
 }
-.theme-default .highlight-desc {
+.theme-legacy .highlight-desc {
     font-size: 0.8em;
     font-weight: bold;
     margin-bottom: 0.2em;
 }
-.theme-default .highlight-player {
+.theme-legacy .highlight-player {
     font-size: 0.7em;
 }
 
 /* =============================================================
    THEME: MODERN (glass, flex layout)
    Everything under .theme-modern … applies when body has class
-   "theme-modern" (set via index.html URL param `?theme=modern`).
+   "theme-modern" (the overlay default; also selectable with `?theme=modern`).
    ============================================================= */
 
 /* Typography and flow overrides for modern theme */

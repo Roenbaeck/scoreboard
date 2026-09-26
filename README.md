@@ -159,7 +159,7 @@ See [CHANGELOG.md](CHANGELOG.md) for detailed changes.
 
 - **Control Panel**: Start/stop scraper, generate stats, navigate to manual scoring
 - **Manual Scoreboard**: Update scores, team names, and settings from any web browser (typically a phone during games)
-- **Overlay**: Add to OBS/vMix using the overlay URL - updates automatically
+- **Overlay**: Add to OBS/vMix using the overlay URL - updates automatically. Modern is the default theme; append `?theme=legacy` to use the legacy layout.
 
 ## Requirements
 
