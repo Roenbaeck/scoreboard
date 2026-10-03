@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Doto:wght,ROND@900,100&family=Roboto:wght@400;700;900&display=swap');
 body {
     margin: 0;
 }
@@ -554,4 +554,555 @@ body {
 }
 @media (prefers-reduced-motion: reduce) {
     .theme-arena .highlight { animation: none; }
+}
+
+/* =============================================================
+   THEME: COURTSIDE (top-left scorebug, ?theme=courtside)
+   Uses Arena's base styles, with two aligned rows and a lower ribbon.
+   ============================================================= */
+.theme-courtside {
+    --arena-accent: #f4cd83;
+}
+.theme-courtside .content_wrapper {
+    top: 3.5vh;
+    bottom: auto;
+    left: 2.5vw;
+    transform: none;
+    width: min(92vw, 24em);
+}
+.theme-courtside .scoreboard {
+    display: flex;
+    flex-direction: column;
+}
+.theme-courtside .home, .theme-courtside .away {
+    grid-template-columns: 0.3em minmax(0, 1fr) 0.8em 1.8em 3.2em;
+    grid-template-areas: 'color team serve set score' '. ended ended ended ended';
+}
+.theme-courtside .away {
+    border-left: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.18);
+}
+.theme-courtside .away .team { text-align: left; }
+.theme-courtside .home:not(:has(.score)), .theme-courtside .away:not(:has(.score)) {
+    grid-template-columns: 0.3em minmax(0, 1fr) 0.8em 3.2em;
+    grid-template-areas: 'color team serve set' '. ended ended ended';
+}
+.theme-courtside .serving {
+    box-shadow: 0 0 0 0.18em rgba(244, 205, 131, 0.13);
+}
+.theme-courtside .ended-sets, .theme-courtside .away .ended-sets {
+    justify-content: flex-end;
+}
+.theme-courtside .highlight {
+    top: 100%;
+    bottom: auto;
+    left: 0;
+    right: auto;
+    width: 100%;
+    border-radius: 0 0 4px 4px;
+}
+.theme-courtside .lineup {
+    top: calc(100% + 2.4em);
+    bottom: auto;
+    left: 0;
+    right: auto;
+    width: min(88vw, 800px);
+    box-sizing: border-box;
+    max-height: calc(88vh - 12em);
+}
+
+/* =============================================================
+   THEME: RETRO (sports-hall LED board, ?theme=retro)
+   A dark housing at the top right with dot-matrix score windows.
+   ============================================================= */
+.theme-retro {
+    --retro-amber: #ffb12e;
+    --retro-red: #ff5a3c;
+    --retro-unlit: rgba(255, 177, 46, 0.1);
+    --retro-edge: #383a40;
+    color: #ece9e2;
+    font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+    font-size: clamp(11px, 1.05vw, 20px);
+}
+.theme-retro .content_wrapper {
+    position: fixed;
+    top: 3.5vh;
+    right: 2.5vw;
+    width: min(92vw, 24em);
+}
+.theme-retro .scoreboard, .theme-retro .lineup {
+    background: linear-gradient(#26272b, #151619);
+    border: 1px solid var(--retro-edge);
+    border-radius: 7px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+.theme-retro .scoreboard {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 0.5em;
+    padding: 0.7em 0.85em 0.8em;
+}
+/* Once the scores are gone the match is over: FINAL replaces the chevrons. */
+.theme-retro .scoreboard:not(:has(.score))::after {
+    content: 'FINAL';
+    position: absolute;
+    top: 4.08em; /* level with the set windows */
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Doto', 'Courier New', monospace;
+    font-weight: 900;
+    font-variation-settings: 'ROND' 100;
+    font-size: 1.1em;
+    color: var(--retro-red);
+    text-shadow: 0 0 0.3em rgba(255, 80, 50, 0.45);
+}
+.theme-retro :not(:has(.score)) > .serve { visibility: hidden; }
+/* Score spans two rows; the set window sits above a small SETS label. */
+.theme-retro .home, .theme-retro .away {
+    display: grid;
+    min-width: 0;
+    align-items: center;
+    column-gap: 0.45em;
+}
+.theme-retro .home {
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
+    grid-template-areas: 'team team team team' 'color color color color' 'score set . serve' 'score label . serve' 'ended ended ended ended';
+}
+.theme-retro .away {
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    grid-template-areas: 'team team team team' 'color color color color' 'serve . set score' 'serve . label score' 'ended ended ended ended';
+}
+.theme-retro .home:not(:has(.score)) {
+    grid-template-areas: 'team team team team' 'color color color color' 'set label . serve' 'set label . serve' 'ended ended ended ended';
+}
+.theme-retro .away:not(:has(.score)) {
+    grid-template-areas: 'team team team team' 'color color color color' 'serve . label set' 'serve . label set' 'ended ended ended ended';
+}
+.theme-retro .home::before, .theme-retro .away::before {
+    content: 'SETS';
+    grid-area: label;
+    align-self: start;
+    justify-self: center;
+    margin-top: 0.35em;
+    font-size: 0.5em;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: #8d8f96;
+}
+.theme-retro .home:not(:has(.score))::before, .theme-retro .away:not(:has(.score))::before {
+    align-self: end;
+    margin-bottom: 0.5em;
+}
+.theme-retro .team {
+    grid-area: team;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-transform: uppercase;
+    font-size: 0.8em;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+}
+.theme-retro .away .team { text-align: right; }
+.theme-retro .color {
+    grid-area: color;
+    height: 0.2em;
+    margin: 0.4em 0 0.6em;
+    overflow: hidden;
+    line-height: 0;
+    border-radius: 2px;
+    background: #6b6f78;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+/* Recessed LED windows; a dim 88 behind each number reads as unlit dots. */
+.theme-retro .score, .theme-retro .set, .theme-retro .ended, .theme-retro .serve,
+.theme-retro .highlight, .theme-retro .number {
+    font-family: 'Doto', 'Courier New', monospace;
+    font-weight: 900;
+    font-variation-settings: 'ROND' 100;
+}
+.theme-retro .score, .theme-retro .set, .theme-retro .ended {
+    position: relative;
+    z-index: 0;
+    padding: 0.06em 0.14em;
+    line-height: 1.15;
+    text-align: right;
+    background: #060606;
+    border-radius: 3px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.9), 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.theme-retro .score::before, .theme-retro .set::before, .theme-retro .ended::before {
+    content: '88';
+    position: absolute;
+    z-index: -1;
+    top: 0.06em;
+    right: 0.14em;
+    color: var(--retro-unlit);
+    text-shadow: none;
+}
+.theme-retro .score {
+    grid-area: score;
+    width: 2ch;
+    font-size: 2.5em;
+    color: var(--retro-amber);
+    text-shadow: 0 0 0.3em rgba(255, 160, 30, 0.45);
+}
+.theme-retro .set {
+    grid-area: set;
+    align-self: end;
+    width: 1ch;
+    font-size: 1.35em;
+    color: var(--retro-red);
+    text-shadow: 0 0 0.3em rgba(255, 80, 50, 0.45);
+}
+.theme-retro .set::before { content: '8'; }
+/* After the match, the sets won become the main numbers. */
+.theme-retro :not(:has(.score)) > .set {
+    align-self: center;
+    font-size: 2.5em;
+    color: var(--retro-amber);
+    text-shadow: 0 0 0.3em rgba(255, 160, 30, 0.45);
+}
+/* Possession chevrons meet in the middle of the board. */
+.theme-retro .serve {
+    grid-area: serve;
+    position: relative;
+    width: 1ch;
+    font-size: 1.6em;
+    line-height: 1;
+    color: transparent;
+}
+.theme-retro .serve::before {
+    content: '<';
+    position: absolute;
+    inset: 0;
+    color: var(--retro-unlit);
+}
+.theme-retro .away .serve::before { content: '>'; }
+.theme-retro .serving::before {
+    color: var(--retro-amber);
+    text-shadow: 0 0 0.3em rgba(255, 160, 30, 0.6);
+}
+.theme-retro .ended-sets {
+    grid-area: ended;
+    display: flex;
+    gap: 0.3em;
+    margin-top: 0.6em;
+}
+.theme-retro .away .ended-sets { justify-content: flex-end; }
+.theme-retro .ended {
+    width: 2ch;
+    font-size: 0.9em;
+    color: rgba(255, 177, 46, 0.72);
+}
+/* Actions run on a message strip under the board, aligned to the scoring side. */
+.theme-retro .highlight {
+    position: absolute;
+    top: calc(100% + 0.45em);
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: baseline;
+    gap: 0.9em;
+    padding: 0.5em 1.1em;
+    overflow: hidden;
+    white-space: nowrap;
+    text-transform: uppercase;
+    background: #060606;
+    border: 1px solid var(--retro-edge);
+    border-radius: 7px;
+    box-shadow: inset 0 0 0 0.3em #1d1e22, inset 0 0 0 calc(0.3em + 1px) #000, 0 6px 18px rgba(0, 0, 0, 0.35);
+    animation: retro-wipe-right 360ms steps(9, end);
+}
+.theme-retro .away-highlight {
+    justify-content: flex-end;
+    animation-name: retro-wipe-left;
+}
+.theme-retro .highlight-desc, .theme-retro .highlight-player {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.theme-retro .highlight-desc {
+    flex: 0 1 auto;
+    max-width: 50%;
+    color: var(--retro-red);
+    text-shadow: 0 0 0.3em rgba(255, 80, 50, 0.45);
+}
+.theme-retro .highlight-player {
+    flex: 0 1 auto;
+    color: var(--retro-amber);
+    text-shadow: 0 0 0.3em rgba(255, 160, 30, 0.45);
+}
+.theme-retro .lineup {
+    position: absolute;
+    top: calc(100% + 3.6em);
+    right: 0;
+    width: min(88vw, 36em);
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 1.8em;
+    padding: 0.9em 1.1em;
+    font-size: 0.85em;
+    max-height: calc(88vh - 12em);
+    overflow: hidden;
+}
+.theme-retro .home_team, .theme-retro .away_team { min-width: 0; }
+.theme-retro .team_name {
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding-bottom: 0.55em;
+    margin-bottom: 0.5em;
+    border-bottom: 1px solid var(--retro-edge);
+}
+.theme-retro .player { display: flex; align-items: baseline; gap: 0.7em; padding: 0.2em 0; }
+.theme-retro .number {
+    flex: 0 0 2ch;
+    text-align: right;
+    font-size: 1.15em;
+    color: var(--retro-amber);
+}
+.theme-retro .libero .number { color: var(--retro-red); }
+.theme-retro .name { min-width: 0; overflow-wrap: anywhere; }
+@keyframes retro-wipe-right {
+    from { clip-path: inset(0 100% 0 0); }
+    to { clip-path: inset(0 0 0 0); }
+}
+@keyframes retro-wipe-left {
+    from { clip-path: inset(0 0 0 100%); }
+    to { clip-path: inset(0 0 0 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .theme-retro .highlight { animation: none; }
+}
+
+/* =============================================================
+   THEME: DAYLIGHT (light lower-third card, ?theme=daylight)
+   Paper rows at the bottom left; actions slide out beside the scoring team.
+   ============================================================= */
+.theme-daylight {
+    --day-paper: #fbfaf6;
+    --day-ink: #15171b;
+    --day-muted: #7a7d84;
+    --day-rule: #e4e1da;
+    --day-tint: #ecebe5;
+    --day-accent: #ff5a24;
+    --day-row: 2.1em;
+    --day-shadow: 0 10px 28px rgba(0, 0, 0, 0.26), 0 1px 3px rgba(0, 0, 0, 0.18);
+    color: var(--day-ink);
+    font-family: 'Barlow Condensed', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+    font-size: clamp(12px, 1.2vw, 23px);
+    font-variant-numeric: tabular-nums;
+}
+.theme-daylight .content_wrapper {
+    position: fixed;
+    left: 2.5vw;
+    bottom: 4vh;
+    width: min(60vw, 23em);
+}
+.theme-daylight .scoreboard {
+    display: flex;
+    flex-direction: column;
+    background: var(--day-paper);
+    border-radius: 4px;
+    box-shadow: var(--day-shadow);
+    overflow: hidden;
+}
+.theme-daylight .home, .theme-daylight .away {
+    display: grid;
+    grid-template-columns: 0.4em minmax(0, 1fr) 1.3em auto 2em 2.6em;
+    grid-template-areas: 'color team serve ended set score';
+    align-items: center;
+    height: var(--day-row);
+}
+.theme-daylight .home:not(:has(.score)), .theme-daylight .away:not(:has(.score)) {
+    grid-template-columns: 0.4em minmax(0, 1fr) 1.3em auto 2.6em;
+    grid-template-areas: 'color team serve ended set';
+}
+.theme-daylight .away { border-top: 1px solid var(--day-rule); }
+.theme-daylight .color {
+    grid-area: color;
+    align-self: stretch;
+    font-size: 0;
+    background: #b9b6ae;
+    box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.14);
+}
+.theme-daylight .team {
+    grid-area: team;
+    min-width: 0;
+    padding: 0 0.4em 0 0.65em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-transform: uppercase;
+    font-size: 1.12em;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+.theme-daylight .serve {
+    grid-area: serve;
+    justify-self: center;
+    width: 0.5em;
+    height: 0.5em;
+    overflow: hidden;
+    border-radius: 50%;
+    color: transparent;
+}
+.theme-daylight .serving {
+    background: var(--day-accent);
+    box-shadow: 0 0 0 0.2em rgba(255, 90, 36, 0.2);
+}
+.theme-daylight .ended-sets {
+    grid-area: ended;
+    display: flex;
+    padding-right: 0.3em;
+}
+.theme-daylight .ended {
+    width: 1.5em;
+    text-align: center;
+    font-size: 0.95em;
+    font-weight: 600;
+    color: var(--day-muted);
+}
+.theme-daylight .set, .theme-daylight .score {
+    align-self: stretch;
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+}
+.theme-daylight .set {
+    grid-area: set;
+    font-size: 1.15em;
+    background: var(--day-tint);
+}
+.theme-daylight .score {
+    grid-area: score;
+    font-size: 1.45em;
+    color: #fff;
+    background: var(--day-ink);
+}
+/* After the match, the sets won take the score's place under a FINAL tab. */
+.theme-daylight :not(:has(.score)) > .set {
+    font-size: 1.45em;
+    color: #fff;
+    background: var(--day-ink);
+}
+.theme-daylight .scoreboard_wrapper:has(.scoreboard):not(:has(.score))::before {
+    content: 'Final';
+    position: absolute;
+    left: 0;
+    bottom: 100%;
+    padding: 0.15em 0.7em 0.05em;
+    text-transform: uppercase;
+    font-size: 0.8em;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: #fff;
+    background: var(--day-accent);
+    border-radius: 3px 3px 0 0;
+}
+.theme-daylight .highlight {
+    position: absolute;
+    top: calc(50% - var(--day-row) / 2);
+    left: calc(100% + 0.35em);
+    display: flex;
+    align-items: center;
+    gap: 0.65em;
+    height: var(--day-row);
+    max-width: min(34vw, 22em);
+    box-sizing: border-box;
+    padding: 0 0.9em;
+    overflow: hidden;
+    white-space: nowrap;
+    color: #fff;
+    background: var(--day-ink);
+    border-radius: 4px;
+    box-shadow: var(--day-shadow);
+    animation: daylight-slide 240ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.theme-daylight .home-highlight { top: 0; }
+.theme-daylight .away-highlight { top: auto; bottom: 0; }
+.theme-daylight .highlight-desc {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 11em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--day-accent);
+}
+.theme-daylight .highlight-player {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 1.05em;
+    font-weight: 500;
+}
+.theme-daylight .lineup {
+    position: absolute;
+    left: 0;
+    bottom: calc(100% + 0.6em);
+    width: min(88vw, 32em);
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 1.4em;
+    padding: 0.85em 1em 0.9em;
+    font-size: 0.9em;
+    background: var(--day-paper);
+    border-radius: 4px;
+    box-shadow: var(--day-shadow);
+    max-height: calc(88vh - 8em);
+    overflow: hidden;
+}
+.theme-daylight .home_team, .theme-daylight .away_team { min-width: 0; }
+.theme-daylight .team_name {
+    text-transform: uppercase;
+    font-size: 1.05em;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    padding-bottom: 0.35em;
+    margin-bottom: 0.3em;
+    border-bottom: 2px solid var(--day-ink);
+}
+.theme-daylight .player {
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+    padding: 0.2em 0;
+    border-bottom: 1px solid var(--day-rule);
+}
+.theme-daylight .player:last-child { border-bottom: 0; }
+.theme-daylight .number {
+    flex: 0 0 1.9em;
+    line-height: 1.45;
+    text-align: center;
+    font-weight: 700;
+    color: #fff;
+    background: var(--day-ink);
+    border-radius: 2px;
+}
+.theme-daylight .libero .number { background: var(--day-accent); }
+.theme-daylight .libero .name::after {
+    content: 'Libero';
+    margin-left: 0.5em;
+    text-transform: uppercase;
+    font-size: 0.72em;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--day-accent);
+}
+.theme-daylight .name { min-width: 0; overflow-wrap: anywhere; font-size: 1.05em; font-weight: 500; }
+@keyframes daylight-slide {
+    from { clip-path: inset(0 100% 0 0); transform: translateX(-0.6em); }
+    to { clip-path: inset(0 0 0 0); transform: translateX(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .theme-daylight .highlight { animation: none; }
 }

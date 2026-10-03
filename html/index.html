@@ -11,13 +11,14 @@
         var current_scoreboard_xml;
         let highlightTimeout;
         window.addEventListener('load', function() {
-            // Modern is the default; Arena and Legacy are opt-in themes.
+            // Modern is the default; other themes are selected in the overlay URL.
             // Keep old ?theme=default links working.
             const urlParams = new URLSearchParams(window.location.search);
             const requestedTheme = urlParams.get('theme');
             const theme = requestedTheme === 'default' ? 'legacy'
-                : ['modern', 'arena', 'legacy'].includes(requestedTheme) ? requestedTheme : 'modern';
-            document.body.className = `theme-${theme}`;
+                : ['modern', 'arena', 'courtside', 'retro', 'daylight', 'legacy'].includes(requestedTheme) ? requestedTheme : 'modern';
+            // Courtside shares Arena's colors, typography, and compact components.
+            document.body.className = theme === 'courtside' ? 'theme-arena theme-courtside' : `theme-${theme}`;
 
             setInterval(() => {
                 fetch('scoreboard.xml?' + (new Date()).getTime())
