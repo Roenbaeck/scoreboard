@@ -143,6 +143,12 @@
         <div class="status-box">
             <label for="overlay-url">Overlay URL</label>
             <p>Paste this URL into a browser source in your streaming software.</p>
+            <label for="overlay-theme">Overlay theme</label>
+            <select id="overlay-theme" style="padding:8px; margin-bottom:14px; max-width:100%;">
+                <option value="modern">Modern</option>
+                <option value="arena">Arena — compact broadcast bar</option>
+                <option value="legacy">Legacy</option>
+            </select>
             <input type="text" id="overlay-url" readonly>
             <button type="button" id="copy-overlay-btn">Copy Overlay URL</button>
             <span id="overlay-copy-status" role="status" aria-live="polite"></span>
@@ -204,7 +210,15 @@
 
         const overlayUrl = document.getElementById('overlay-url');
         const overlayCopyStatus = document.getElementById('overlay-copy-status');
-        overlayUrl.value = new URL(`/${USERNAME}/`, window.location.origin).href;
+        const overlayTheme = document.getElementById('overlay-theme');
+        function updateOverlayUrl() {
+            const url = new URL(`/${USERNAME}/`, window.location.origin);
+            if (overlayTheme.value !== 'modern') url.searchParams.set('theme', overlayTheme.value);
+            overlayUrl.value = url.href;
+            overlayCopyStatus.textContent = '';
+        }
+        overlayTheme.addEventListener('change', updateOverlayUrl);
+        updateOverlayUrl();
         overlayUrl.addEventListener('click', () => overlayUrl.select());
         document.getElementById('copy-overlay-btn').addEventListener('click', async () => {
             if (navigator.clipboard && window.isSecureContext) {

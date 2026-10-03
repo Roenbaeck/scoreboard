@@ -159,7 +159,7 @@ See [CHANGELOG.md](CHANGELOG.md) for detailed changes.
 
 - **Control Panel**: Start/stop scraper, generate stats, navigate to manual scoring
 - **Manual Scoreboard**: Update scores, team names, and settings from any web browser (typically a phone during games)
-- **Overlay**: Add to OBS/vMix using the overlay URL - updates automatically. Modern is the default theme; append `?theme=legacy` to use the legacy layout.
+- **Overlay**: Add to OBS/vMix using the overlay URL - updates automatically. Choose a theme on the Control Panel before copying the link. Modern is the default; `?theme=arena` selects a bottom-centered broadcast bar with compact, single-line action highlights, and `?theme=legacy` selects the legacy layout. Changing the selector updates the link to copy; paste the new link into your streaming software to switch themes.
 
 ## Requirements
 

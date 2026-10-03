@@ -351,3 +351,207 @@ body {
 /* Backdrop blur removed by default for streaming-friendly alpha compositing. */
 .theme-modern .highlight-desc { font-size: 1em; font-weight: 900; margin-bottom: 0.1em; }
 .theme-modern .highlight-player { font-size: 0.9em; opacity: 0.9; }
+
+/* =============================================================
+   THEME: ARENA (compact broadcast bar, ?theme=arena)
+   The bar stays anchored when the single-line action ribbon appears.
+   ============================================================= */
+.theme-arena {
+    --arena-ink: #101d2c;
+    --arena-panel: rgba(15, 28, 43, 0.96);
+    --arena-accent: #a8efcf;
+    color: #f5f8fc;
+    font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+    font-size: clamp(11px, 1.05vw, 20px);
+    font-variant-numeric: tabular-nums;
+}
+.theme-arena .content_wrapper {
+    position: fixed;
+    bottom: 4vh;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(92vw, 1040px);
+}
+.theme-arena .scoreboard {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    background: var(--arena-panel);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    box-shadow: 0 5px 16px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+}
+.theme-arena .home, .theme-arena .away {
+    display: grid;
+    align-items: center;
+    min-width: 0;
+    column-gap: 0.65em;
+    position: relative;
+}
+.theme-arena .home {
+    grid-template-columns: 0.3em minmax(0, 1fr) 0.8em 1.8em 3.2em;
+    grid-template-areas: 'color team serve set score' '. ended ended ended ended';
+}
+.theme-arena .away {
+    grid-template-columns: 3.2em 1.8em 0.8em minmax(0, 1fr) 0.3em;
+    grid-template-areas: 'score set serve team color' 'ended ended ended ended .';
+    border-left: 1px solid rgba(16, 29, 44, 0.25);
+}
+.theme-arena .home:not(:has(.score)) {
+    grid-template-columns: 0.3em minmax(0, 1fr) 0.8em 3.2em;
+    grid-template-areas: 'color team serve set' '. ended ended ended';
+}
+.theme-arena .away:not(:has(.score)) {
+    grid-template-columns: 3.2em 0.8em minmax(0, 1fr) 0.3em;
+    grid-template-areas: 'set serve team color' 'ended ended ended .';
+}
+.theme-arena .team {
+    grid-area: team;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 700;
+    letter-spacing: 0.015em;
+}
+.theme-arena .away .team { text-align: right; }
+.theme-arena .color {
+    grid-area: color;
+    align-self: stretch;
+    background: #64748b;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+    font-size: 0;
+}
+.theme-arena .score {
+    grid-area: score;
+    display: grid;
+    place-items: center;
+    height: 1.9em;
+    font-size: 1.8em;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    color: var(--arena-ink);
+    background: #f2f6f9;
+}
+.theme-arena .set {
+    grid-area: set;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 3.4em;
+    font-weight: 900;
+    color: var(--arena-accent);
+    line-height: 1;
+}
+.theme-arena .set::after {
+    content: 'SETS';
+    font-size: 0.43em;
+    letter-spacing: 0.12em;
+    color: #aebdcb;
+    margin-top: 0.45em;
+}
+.theme-arena .serve {
+    grid-area: serve;
+    width: 0.7em;
+    height: 0.7em;
+    border-radius: 50%;
+    font-size: inherit;
+    color: transparent;
+}
+.theme-arena .serving {
+    background: var(--arena-accent);
+    box-shadow: 0 0 0 0.18em rgba(168, 239, 207, 0.13);
+}
+.theme-arena .ended-sets {
+    grid-area: ended;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.7em;
+    padding: 0.3em 0.7em;
+    font-size: 0.65em;
+    color: #b9c8d6;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+.theme-arena .away .ended-sets { justify-content: flex-start; }
+.theme-arena .ended { min-width: 1.3em; text-align: center; }
+/* A shallow ribbon touches the scoring side of the bar. No layout shift. */
+.theme-arena .highlight {
+    position: absolute;
+    bottom: 100%;
+    left: 25%;
+    width: 50%;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 0.7em;
+    height: 1.8em;
+    padding: 0 0.9em;
+    overflow: hidden;
+    border-radius: 4px 4px 0 0;
+    background: var(--arena-accent);
+    color: var(--arena-ink);
+    font-size: 0.8em;
+    animation: arena-action-in 160ms ease-out;
+}
+.theme-arena .home-highlight { left: 0; }
+.theme-arena .away-highlight { left: auto; right: 0; }
+.theme-arena .highlight-desc {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 45%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-transform: uppercase;
+    font-size: 0.8em;
+    letter-spacing: 0.06em;
+    font-weight: 900;
+}
+.theme-arena .highlight-player {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    border-left: 1px solid rgba(16, 29, 44, 0.25);
+    padding-left: 0.7em;
+    font-weight: 500;
+}
+/* Lineups keep the same centered alignment and leave room for the action. */
+.theme-arena .lineup {
+    position: absolute;
+    bottom: calc(100% + 2.4em);
+    left: 0;
+    right: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 2em;
+    padding: 1em 1.3em;
+    background: var(--arena-panel);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-top: 3px solid var(--arena-accent);
+    border-radius: 6px;
+    box-shadow: 0 5px 16px rgba(0, 0, 0, 0.25);
+    font-size: 0.85em;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+.theme-arena .home_team, .theme-arena .away_team { min-width: 0; }
+.theme-arena .team_name {
+    font-weight: 900;
+    padding-bottom: 0.65em;
+    margin-bottom: 0.6em;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+.theme-arena .player { display: flex; align-items: baseline; gap: 0.7em; padding: 0.25em 0; }
+.theme-arena .number { flex: 0 0 1.8em; text-align: center; color: var(--arena-accent); font-weight: 900; }
+.theme-arena .name { min-width: 0; overflow-wrap: anywhere; }
+.theme-arena .libero .number { background: var(--arena-accent); color: var(--arena-ink); border-radius: 2px; }
+@keyframes arena-action-in {
+    from { opacity: 0; transform: translateY(3px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .theme-arena .highlight { animation: none; }
+}

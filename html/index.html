@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="-1">
     <meta http-equiv="Cache-Control" content="no-cache">
@@ -10,10 +11,12 @@
         var current_scoreboard_xml;
         let highlightTimeout;
         window.addEventListener('load', function() {
-            // Modern is the default; ?theme=legacy selects the legacy layout.
+            // Modern is the default; Arena and Legacy are opt-in themes.
             // Keep old ?theme=default links working.
             const urlParams = new URLSearchParams(window.location.search);
-            const theme = ['legacy', 'default'].includes(urlParams.get('theme')) ? 'legacy' : 'modern';
+            const requestedTheme = urlParams.get('theme');
+            const theme = requestedTheme === 'default' ? 'legacy'
+                : ['modern', 'arena', 'legacy'].includes(requestedTheme) ? requestedTheme : 'modern';
             document.body.className = `theme-${theme}`;
 
             setInterval(() => {
