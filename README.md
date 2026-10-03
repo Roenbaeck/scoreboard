@@ -171,7 +171,7 @@ See [CHANGELOG.md](CHANGELOG.md) for detailed changes.
 
 Feel free to submit issues or pull requests for improvements.
 
-![Example Overlay](PrismLive.png)
+![Example Overlay](Scoreboard.jpg)
 
 ### Jersey colors
 
