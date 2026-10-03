@@ -1,147 +1,307 @@
+:root {
+    --bg: #eef0f3;
+    --panel: #ffffff;
+    --ink: #161a20;
+    --muted: #677080;
+    --line: #d9dde3;
+    --soft: #e7eaef;
+    --plus-bg: #161a20;
+    --plus-ink: #ffffff;
+    --serve-bg: #ffd43b;
+    --focus: #2f6fed;
+    --danger: #c2372f;
+    --shadow: 0 1px 2px rgba(20, 26, 36, 0.08), 0 4px 14px rgba(20, 26, 36, 0.06);
+    --gap: 10px;
+    --radius: 18px;
+    --control: 44px;
+    color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #111418;
+        --panel: #1b2027;
+        --ink: #f1f3f6;
+        --muted: #98a1ad;
+        --line: #333a45;
+        --soft: #272d36;
+        --plus-bg: #eceff3;
+        --plus-ink: #111418;
+        --focus: #7aa5ff;
+        --danger: #ff7a70;
+        --shadow: none;
+        color-scheme: dark;
+    }
+}
 * {
+    box-sizing: border-box;
     touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+html {
+    -webkit-text-size-adjust: 100%;
 }
 body {
     margin: 0;
+    /* Taller than the screen so iOS Safari can hide its toolbars; scoreboard.js scrolls back to the top. */
     height: 110vh;
     overflow-y: scroll;
-    text-align: center;
-    color: #414c60;
-    font-size: calc(1em + 1.42vw);
+    background: var(--bg);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    font-size: 16px;
 }
-div {
-    margin: auto;
-    /* border: 1px solid red; */
+.model {
+    display: none;
 }
-.header {
-    font-weight: bold;
-}
-.controller_grid {
-    padding: 1em;
-    display: grid;
-    gap: 0.3em 0.5em;
-    justify-content: space-between;
-    place-items: center;
-    grid-template-columns: 2fr 1fr auto 1fr 2fr;
-    grid-template-rows: auto;
-    grid-template-areas: 
-        "cell_header_set . . . cell_header_point"
-        "cell_set cell_color cell_scoreboard . cell_point" 
-        "cell_oops cell_oops cell_oops cell_oops cell_oops"
-        "cell_screen cell_screen cell_screen cell_screen cell_screen";
-}
-.cell_header_set {
-    grid-area: cell_header_set;
-}
-.cell_header_point {
-    grid-area: cell_header_point;
-}
-.cell_set {
-    grid-area: cell_set;
-}
-.cell_color {
-    grid-area: cell_color;
-}
-.cell_scoreboard {
-    grid-area: cell_scoreboard;
-    justify-self: stretch;
-    align-self: start;
-}
-.cell_point {
-    grid-area: cell_point;
-}
-.cell_oops {
-    grid-area: cell_oops;
-}
-.cell_screen {
-    position: relative;
-    width: 40%;
-    height: 5em;
-    grid-area: cell_screen;
-    border: 3px solid #414c60;
-    margin-top: 1vw;
-}
-@media (orientation: portrait) {
-    .cell_screen {
-        width: 60%;
-    }
-    .controller_grid {
-        grid-template-columns: 1fr auto 1fr;
-        grid-template-areas: 
-            "cell_scoreboard cell_scoreboard cell_scoreboard" 
-            "cell_header_set . cell_header_point"
-            "cell_set cell_color cell_point" 
-            "cell_oops cell_oops cell_oops"
-            "cell_screen cell_screen cell_screen";
-    }
-}
-.color_grid {
-    display: grid;
-    gap: 1em 1em;
-    grid-template-columns: 1fr;
-    grid-template-rows: auto;
-}
-.scoring_grid {
-    display: grid;
-    justify-content: space-between;
-    place-items: center;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto;
-    gap: 0.3em 0.5em;
-}
-.button {
-    width: 6vmax;
-    height: 6vmax;
-}
-.plus {
-    background-image: url("plus.png");
-    background-position: center; 
-    background-repeat: no-repeat; 
-    background-size: contain; 
-}
-.minus {
-    background-image: url("minus.png");
-    background-position: center; 
-    background-repeat: no-repeat; 
-    background-size: contain;
-}
-.oops_grid {
-    display: grid;
-    justify-content: space-between;
-    place-items: center;
-    grid-template-columns: 1fr 1fr 1fr;
-    grid-template-rows: auto;
-    gap: 0.3em 1em;
-}
-.reset {
-    background-image: url("reset.png");
-    background-position: center; 
-    background-repeat: no-repeat; 
-    background-size: contain; 
-}
-.undo {
-    background-image: url("undo.png");
-    background-position: center; 
-    background-repeat: no-repeat; 
-    background-size: contain; 
-}
-.redo {
-    background-image: url("redo.png");
-    background-position: center; 
-    background-repeat: no-repeat; 
-    background-size: contain; 
-}
-#position {
-    display: flex;
-    justify-content: center;
-    align-content: center;
-    flex-direction: column;
-    position: absolute;
-    margin: 0.5vw;
-    width: 11ex;
-    height: 2em;
-    font-size: 0.7em;
-    font-weight: bold;
-    border-radius: 0.5em;
+button {
+    font: inherit;
+    color: inherit;
+    border: 0;
+    margin: 0;
+    cursor: pointer;
     user-select: none;
+    -webkit-user-select: none;
+}
+button:focus-visible, .swatch:focus-within {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+}
+
+/* One screen, no scrolling: two team panels and a toolbar. */
+.controller {
+    height: 100vh;
+    height: 100dvh;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) auto;
+    gap: var(--gap);
+    padding: max(var(--gap), env(safe-area-inset-top)) max(var(--gap), env(safe-area-inset-right))
+             max(var(--gap), env(safe-area-inset-bottom)) max(var(--gap), env(safe-area-inset-left));
+}
+@media (orientation: landscape) {
+    .controller {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-rows: minmax(0, 1fr) auto;
+    }
+    .toolbar { grid-column: 1 / -1; }
+}
+@media (max-height: 460px) {
+    :root { --gap: 8px; --radius: 14px; --control: 38px; }
+    .panel { padding: 8px 10px; }
+}
+.panel {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: var(--gap);
+    min-height: 0;
+    padding: 12px;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+/* Header: jersey color, team name, serve */
+.panel_header {
+    display: flex;
+    align-items: center;
+    gap: var(--gap);
+    min-width: 0;
+}
+.swatch {
+    position: relative;
+    flex: none;
+    width: var(--control);
+    height: var(--control);
+    border-radius: 12px;
+    background: var(--swatch, transparent);
+    box-shadow: inset 0 0 0 2px rgba(127, 135, 148, 0.45);
+}
+/* No jersey color set: the overlay theme decides, shown as a striped swatch. */
+.swatch.unset {
+    background: repeating-linear-gradient(-45deg, var(--soft) 0 5px, transparent 5px 10px);
+}
+.swatch input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+.team_input {
+    flex: 1;
+    min-width: 0;
+    height: var(--control);
+    padding: 0 4px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    /* At least 16px so iOS does not zoom in while editing. */
+    font-size: 20px;
+    font-weight: 700;
+    text-overflow: ellipsis;
+}
+.team_input:focus {
+    outline: none;
+    border-bottom-color: var(--focus);
+}
+.serve_button {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: var(--control);
+    height: var(--control);
+    border-radius: 50%;
+    background: transparent;
+    box-shadow: inset 0 0 0 2px var(--line);
+}
+.serve_button::before {
+    content: '';
+    width: 62%;
+    height: 62%;
+    background: url("volleyball.png") center / contain no-repeat;
+    filter: grayscale(1);
+    opacity: 0.4;
+}
+.serve_button[aria-pressed="true"] {
+    background: var(--serve-bg);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--serve-bg) 35%, transparent);
+    cursor: default;
+}
+.serve_button[aria-pressed="true"]::before {
+    filter: none;
+    opacity: 1;
+}
+
+/* Points: a small minus and a large score that adds a point when tapped */
+.points {
+    display: grid;
+    grid-template-columns: minmax(64px, 22%) minmax(0, 1fr);
+    gap: var(--gap);
+    min-height: 0;
+    container-type: size;
+}
+.point_minus, .point_plus {
+    border-radius: 14px;
+    transition: transform 80ms ease-out, filter 80ms ease-out;
+}
+.point_minus {
+    background: var(--soft);
+    font-size: 34px;
+    font-weight: 600;
+}
+.point_plus {
+    position: relative;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background: var(--plus-bg);
+    color: var(--plus-ink);
+}
+.point_minus:active, .point_plus:active, .set_step:active, .tool:active:not(:disabled) {
+    transform: scale(0.97);
+    filter: brightness(0.9);
+}
+@media (prefers-color-scheme: dark) {
+    .point_plus:active { filter: brightness(0.82); }
+}
+.score_value {
+    font-size: 72px;
+    font-size: clamp(44px, min(72cqh, 36cqw), 180px);
+    font-weight: 800;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+}
+.point_hint {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    opacity: 0.55;
+}
+
+/* Sets stepper */
+.sets {
+    display: flex;
+    align-items: center;
+    gap: var(--gap);
+}
+.sets_label {
+    margin-right: auto;
+    padding-left: 4px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+.set_step {
+    width: 52px;
+    height: var(--control);
+    border-radius: 12px;
+    background: var(--soft);
+    font-size: 26px;
+    line-height: 1;
+}
+.set_value {
+    min-width: 2ch;
+    text-align: center;
+    font-size: 28px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+}
+.flash {
+    animation: bump 240ms ease-out;
+}
+@keyframes bump {
+    from { transform: scale(1.14); }
+    to { transform: scale(1); }
+}
+
+/* History */
+.toolbar {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--gap);
+}
+.tool {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 52px;
+    border-radius: 14px;
+    background: var(--panel);
+    box-shadow: var(--shadow);
+    font-size: 16px;
+    font-weight: 700;
+}
+.tool svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.tool:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+.tool_reset {
+    color: var(--danger);
+}
+@media (max-height: 460px) {
+    .tool { height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .flash { animation: none; }
+    .point_minus, .point_plus { transition: none; }
 }

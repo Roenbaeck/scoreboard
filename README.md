@@ -10,7 +10,7 @@ A multi-user web-based scoreboard application designed for volleyball games. It 
 - **Automated scraping**: Fetch live scores from Profixio match URLs, including `https://www.profixio.com/app/lx/match/32678592` and legacy competition URLs with `?expandmatch=<matchId>`
 - **Manual control**: Real-time score updates with undo/redo functionality
 - **Stats generation**: Automatic player statistics from match data
-- **Customizable**: Team names, colors, and position adjustments
+- **Customizable**: Team names, jersey colors, and overlay themes
 - **Streaming overlay**: Simple overlay for OBS/vMix integration
 - **Secure**: Session-based authentication with rate limiting
 
@@ -158,7 +158,7 @@ See [CHANGELOG.md](CHANGELOG.md) for detailed changes.
 ## Usage
 
 - **Control Panel**: Start/stop scraper, generate stats, navigate to manual scoring
-- **Manual Scoreboard**: Update scores, team names, and settings from any web browser (typically a phone during games)
+- **Manual Scoreboard**: Update scores, team names, and settings from any web browser. The layout is made for a phone: each team has a panel where tapping the large score adds a point (and gives that team the serve), with smaller buttons for corrections and sets, and undo, reset, and redo along the bottom. Portrait stacks the teams; landscape places them side by side.
 - **Overlay**: Add to OBS/vMix using the overlay URL - updates automatically. Choose a theme on the Control Panel before copying the link. Modern is the default; `?theme=arena` selects a bottom-centered broadcast bar, `?theme=courtside` selects a compact two-row scoreboard at the top left, `?theme=retro` selects a sports-hall LED board at the top right, `?theme=daylight` selects a light two-row card at the bottom left, and `?theme=legacy` selects the legacy layout. Arena, Courtside, Retro, and Daylight use compact, single-line action highlights. Changing the selector updates the link to copy; paste the new link into your streaming software to switch themes.
 
 ## Requirements
