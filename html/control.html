@@ -24,6 +24,15 @@
             margin-top: 0;
             font-size: 1.9rem;
         }
+        .account-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .account-bar form { margin: 0; }
         label {
             font-weight: bold;
             display: block;
@@ -117,6 +126,12 @@
 </head>
 <body>
     <div class="container">
+        <div class="account-bar">
+            <span>Signed in as <strong id="account-username"></strong></span>
+            <form action="/logout" method="get">
+                <button type="submit" class="secondary">Log out</button>
+            </form>
+        </div>
         <h1>Scoreboard Controller</h1>
     <p>Paste the Profixio match URL to manage the scraper and generate stats.</p>
 
@@ -185,20 +200,35 @@
     <script>
         // Extract username from URL path
         const USERNAME = window.location.pathname.split('/')[1] || 'default';
+        document.getElementById('account-username').textContent = USERNAME;
 
         const overlayUrl = document.getElementById('overlay-url');
         const overlayCopyStatus = document.getElementById('overlay-copy-status');
         overlayUrl.value = new URL(`/${USERNAME}/`, window.location.origin).href;
         overlayUrl.addEventListener('click', () => overlayUrl.select());
         document.getElementById('copy-overlay-btn').addEventListener('click', async () => {
-            try {
-                await navigator.clipboard.writeText(overlayUrl.value);
-                overlayCopyStatus.textContent = 'Copied!';
-            } catch (error) {
-                overlayUrl.focus();
-                overlayUrl.select();
-                overlayCopyStatus.textContent = 'Select Copy from the menu, or press Ctrl+C / ⌘C.';
+            if (navigator.clipboard && window.isSecureContext) {
+                try {
+                    await navigator.clipboard.writeText(overlayUrl.value);
+                    overlayCopyStatus.textContent = 'Copied!';
+                    return;
+                } catch (error) {
+                    // Try selection-based copying if clipboard access is denied.
+                }
             }
+            overlayUrl.focus();
+            overlayUrl.select();
+            overlayUrl.setSelectionRange(0, overlayUrl.value.length);
+            // Compatibility fallback for HTTP deployments without Clipboard API.
+            let copied = false;
+            try {
+                copied = document.execCommand('copy');
+            } catch (error) {
+                // Keep the URL selected if the browser blocks both methods.
+            }
+            overlayCopyStatus.textContent = copied
+                ? 'Copied!'
+                : 'Automatic copying is unavailable. Press Ctrl+C / ⌘C or select Copy from the menu.';
         });
         
         const statusText = document.getElementById('status-text');
