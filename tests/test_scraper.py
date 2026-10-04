@@ -102,7 +102,40 @@ class ProfixioTests(unittest.TestCase):
             xml = output.read_text()
             self.assertIn('Sollentuna VK C', xml)
             self.assertIn('Vallentuna VBK B', xml)
+            score = json.loads((Path(directory) / 'scoreboard.json').read_text())
+            self.assertEqual(score['home']['name'], 'Sollentuna VK C')
+            self.assertEqual(score['away']['name'], 'Vallentuna VBK B')
+            self.assertEqual((score['home']['sets'], score['home']['points']), (0, 0))
         self.assertEqual(get.call_args_list[2].args[0], API_URL)
+
+    def test_scoreboard_json_mirrors_state_and_derives_sidecar_path(self):
+        state = {
+            'home': {'name': 'Sollentuna VK C', 'sets': 1, 'points': 14},
+            'away': {'name': 'Vallentuna VBK B', 'sets': 2, 'points': 25},
+            'matchEnded': True
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            xml_path = Path(directory) / 'scoreboard.xml'
+            self.assertTrue(scraper.write_scoreboard_json(state, str(xml_path)))
+            json_path = Path(directory) / 'scoreboard.json'
+            self.assertTrue(json_path.exists())
+            self.assertEqual(json.loads(json_path.read_text()), {
+                'home': {'name': 'Sollentuna VK C', 'sets': 1, 'points': 14},
+                'away': {'name': 'Vallentuna VBK B', 'sets': 2, 'points': 25},
+                'matchEnded': True
+            })
+
+    def test_scoreboard_json_defaults_missing_fields_and_rejects_empty_state(self):
+        with tempfile.TemporaryDirectory() as directory:
+            xml_path = Path(directory) / 'scoreboard.xml'
+            self.assertFalse(scraper.write_scoreboard_json(None, str(xml_path)))
+            scraper.write_scoreboard_json({'home': {}, 'away': {}}, str(xml_path))
+            score = json.loads((Path(directory) / 'scoreboard.json').read_text())
+            self.assertEqual(score, {
+                'home': {'name': 'Home', 'sets': 0, 'points': 0},
+                'away': {'name': 'Away', 'sets': 0, 'points': 0},
+                'matchEnded': False
+            })
 
 
 if __name__ == '__main__':

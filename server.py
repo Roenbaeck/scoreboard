@@ -395,6 +395,19 @@ def user_upload(username):
         return str(e), 500
 
 # API endpoints
+@app.route('/<username>/api/score')
+def user_score(username):
+    """Serve the current match score as JSON (public, no auth - for overlays
+    and remote clients like a Watch companion app, same posture as
+    scoreboard.xml above)."""
+    if not validate_username(username) or not get_user(username):
+        abort(404)
+    user_data_dir = _get_user_data_dir(username)
+    json_path = os.path.join(user_data_dir, 'scoreboard.json')
+    if not os.path.exists(json_path):
+        abort(404)
+    return send_file(json_path, mimetype='application/json')
+
 @app.route('/<username>/api/scraper/status', methods=['GET'])
 def user_scraper_status(username):
     """Return JSON status for user's scraper process."""
