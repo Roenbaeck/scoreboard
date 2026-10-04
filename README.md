@@ -128,10 +128,46 @@ and OpenSSL packages or use a Python build with working OpenSSL support.
 - ✅ Auto-generated session secrets
 
 **For production deployment**:
-- Use HTTPS (reverse proxy with nginx/Apache)
+- Use HTTPS (reverse proxy with nginx/Apache/Caddy)
 - Set `SCOREBOARD_FLASK_SECRET` environment variable
 - Run behind firewall or VPN
 - Keep `users.json` private (already in .gitignore)
+
+### HTTPS via Caddy + Let's Encrypt
+
+[Caddy](https://caddyserver.com) provisions and renews a Let's Encrypt
+certificate automatically and reverse-proxies to the Waitress server
+unchanged, so clients that require HTTPS (e.g. `URLSession`-based apps,
+which are more strictly sandboxed by App Transport Security than a browser's
+`WKWebView`) can reach the scoreboard over a real DNS hostname:
+
+```bash
+brew install caddy   # or your OS package manager
+```
+
+`$(brew --prefix)/etc/Caddyfile` (`/opt/homebrew/etc/Caddyfile` on Apple
+Silicon, `/usr/local/etc/Caddyfile` on Intel):
+```
+{
+    http_port 8080
+    https_port 8443
+}
+
+yourdomain.example.com {
+    reverse_proxy localhost:8081
+}
+```
+
+```bash
+brew services start caddy   # runs as a launchd service, survives reboots
+```
+
+`http_port`/`https_port` move Caddy's listeners off the privileged 80/443
+ports so it doesn't need root. On your router, forward the public ports to
+these instead: external **80 → 8080**, external **443 → 8443**, on the LAN
+IP of the machine running Caddy. Let's Encrypt and browsers/clients only
+ever see the standard public ports 80/443 — the port remap is invisible to
+them, handled entirely by the router's NAT.
 
 ## Version History
 
