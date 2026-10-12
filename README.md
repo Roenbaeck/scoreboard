@@ -198,18 +198,29 @@ them, handled entirely by the router's NAT.
 
 ## External displays and Tubeist Watch
 
-`GET /<username>/api/status` returns a short UTF-8 plain text status, for example:
+`GET /<username>/api/status` returns a short UTF-8 text status with inline Markdown, for example:
 
 ```text
-Sollentuna VK C – Vallentuna VBK B
+**Sollentuna VK C – Vallentuna VBK B**
 Sets: 1–2
-Points: 14–25
+**Points: 14–25**
 ```
 
-After a scraped match ends, the second line is `Final: 1–3` and the points
+After a scraped match ends, the second line is `**Final: 1–3**` and the points
 line is omitted. Formatting and volleyball knowledge belong to this server.
 Tubeist and its Watch companion just relay and display the text; other services
 can provide a different sport or any other short status with the same contract.
+
+The updated Watch companion centers the status body and preserves newlines. It
+supports `**bold**`, `*italic*`, and backticks for monospaced text. There is no
+fixed heading; the update age and any stale/error notice sit in a centered
+footer above the page indicator. Team names are escaped before formatting
+so punctuation in a name stays literal. The response remains
+`text/plain; charset=utf-8`; Tubeist forwards it unchanged. The Watch keeps only
+these text styles: links and images become inactive labels, HTML stays text,
+and remote content cannot set colors, font sizes, or actions. Existing plain
+text providers still work. Update the Watch companion before updating this
+server; older companions display the Markdown markers and escapes literally.
 
 In Tubeist settings, set **Watch companion → External status URL** to the full
 HTTP or HTTPS address, including the username and `/api/status` path:

@@ -48,7 +48,7 @@ class ScoreAPITests(unittest.TestCase):
         self.assertEqual(response.content_type, 'text/plain; charset=utf-8')
         self.assertEqual(response.headers['Cache-Control'], 'no-store')
         self.assertEqual(response.headers['X-Content-Type-Options'], 'nosniff')
-        self.assertEqual(response.get_data(as_text=True), 'Å & Ö – Away\nSets: 1–2\nPoints: 13–25')
+        self.assertEqual(response.get_data(as_text=True), '**Å \\& Ö – Away**\nSets: 1–2\n**Points: 13–25**')
         score = self.client.get('/test-user/api/score')
         self.assertEqual(score.json['home'], {'name': 'Å & Ö', 'sets': 1, 'points': 13})
         self.assertFalse(score.json['matchEnded'])
@@ -73,7 +73,7 @@ class ScoreAPITests(unittest.TestCase):
             'home': {'name': 'Home & Friends', 'sets': 3, 'points': 25},
             'away': {'name': 'Away', 'sets': 2, 'points': 20}, 'matchEnded': True,
         }, str(self.xml))
-        self.assertEqual(self.client.get('/test-user/api/status').text, 'Home & Friends – Away\nFinal: 3–2')
+        self.assertEqual(self.client.get('/test-user/api/status').text, '**Home \\& Friends – Away**\n**Final: 3–2**')
         score = self.client.get('/test-user/api/score').json
         self.assertTrue(score['matchEnded'])
         self.assertEqual(score['home']['points'], 0)
@@ -102,12 +102,24 @@ class ScoreAPITests(unittest.TestCase):
         self.assertNotIn('\x1b', text)
         self.assertNotIn('\u202e', text)
 
-    def test_markup_is_returned_as_literal_plain_text(self):
-        name = '<script>alert("x")</script> **team**'
+    def test_team_names_are_escaped_before_adding_markdown(self):
+        name = '<b>*Team*</b> [A](B) &copy; _C_ `D` \\E'
         self.upload(manual_xml(name=name))
         response = self.client.get('/test-user/api/status')
-        self.assertIn(name, response.text)
+        escaped = r'\<b\>\*Team\*\<\/b\> \[A\]\(B\) \&copy\; \_C\_ \`D\` \\E'
+        self.assertEqual(response.text, f'**{escaped} – Away**\nSets: 1–2\n**Points: 13–25**')
         self.assertEqual(response.mimetype, 'text/plain')
+        self.assertEqual(self.client.get('/test-user/api/score').json['home']['name'], name)
+
+    def test_escaping_both_long_names_still_fits_watch_limits(self):
+        text = format_status({
+            'home': {'name': '*&' * 1000, 'sets': 999999, 'points': 999999},
+            'away': {'name': '`[' * 1000, 'sets': 999999, 'points': 999999},
+            'matchEnded': False,
+        })
+        self.assertLessEqual(len(text), 500)
+        self.assertLessEqual(len(text.encode('utf-8')), 4096)
+        self.assertEqual(len(text.splitlines()), 3)
 
     def test_parser_does_not_resolve_external_entities(self):
         self.xml.parent.mkdir(parents=True)

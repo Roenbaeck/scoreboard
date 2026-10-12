@@ -5,6 +5,7 @@ source avoids stale JSON sidecars when the operator switches between them.
 """
 from pathlib import Path
 import re
+from string import punctuation
 import unicodedata
 
 from bs4 import BeautifulSoup
@@ -57,14 +58,17 @@ def _display_name(value):
                     or ord(char) in range(0x202A, 0x202F)
                     or ord(char) in range(0x2066, 0x206A) else char for char in value)
     value = ' '.join(value.split())
-    return value[:79] + '…' if len(value) > 80 else value
+    value = value[:79] + '…' if len(value) > 80 else value
+    # Names are data, not Markdown. Escape punctuation after bounding the name
+    # so backslashes, emphasis, links, HTML, and entities stay literal.
+    return ''.join('\\' + char if char in punctuation else char for char in value)
 
 
 def format_status(score):
     """All sport-specific vocabulary and layout stay on the server."""
     home, away = score['home'], score['away']
-    title = f"{_display_name(home['name'])} – {_display_name(away['name'])}"
+    title = f"**{_display_name(home['name'])} – {_display_name(away['name'])}**"
     if score['matchEnded']:
-        return f"{title}\nFinal: {home['sets']}–{away['sets']}"
+        return f"{title}\n**Final: {home['sets']}–{away['sets']}**"
     return (f"{title}\nSets: {home['sets']}–{away['sets']}"
-            f"\nPoints: {home['points']}–{away['points']}")
+            f"\n**Points: {home['points']}–{away['points']}**")
