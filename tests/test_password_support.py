@@ -19,7 +19,7 @@ class PasswordSupportTests(unittest.TestCase):
         self.addCleanup(directory.cleanup)
         self.directory = Path(directory.name)
         root = Path(__file__).resolve().parents[1]
-        for name in ('server.py', 'generate_password.py', 'password_support.py'):
+        for name in ('server.py', 'generate_password.py', 'password_support.py', 'score_status.py'):
             shutil.copyfile(root / name, self.directory / name)
 
     def run_without_pbkdf2(self, script, run_name):

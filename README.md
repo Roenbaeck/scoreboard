@@ -128,10 +128,87 @@ and OpenSSL packages or use a Python build with working OpenSSL support.
 - ✅ Auto-generated session secrets
 
 **For production deployment**:
-- Use HTTPS (reverse proxy with nginx/Apache)
+- Use HTTPS (reverse proxy with nginx/Apache/Caddy)
 - Set `SCOREBOARD_FLASK_SECRET` environment variable
 - Run behind firewall or VPN
 - Keep `users.json` private (already in .gitignore)
+
+### HTTPS via Caddy + Let's Encrypt
+
+[Caddy](https://caddyserver.com) provisions and renews a Let's Encrypt
+certificate automatically and reverse-proxies to the Waitress server
+unchanged, so clients that require HTTPS, including Tubeist’s external status
+relay, can reach the scoreboard over a real DNS hostname:
+
+```bash
+brew install caddy   # or your OS package manager
+```
+
+`$(brew --prefix)/etc/Caddyfile` (`/opt/homebrew/etc/Caddyfile` on Apple
+Silicon, `/usr/local/etc/Caddyfile` on Intel):
+```
+{
+    http_port 8080
+    https_port 8443
+}
+
+yourdomain.example.com {
+    reverse_proxy localhost:8081
+}
+```
+
+```bash
+brew services start caddy   # runs as a launchd service, survives reboots
+```
+
+`http_port`/`https_port` move Caddy's listeners off the privileged 80/443
+ports so it doesn't need root. On your router, forward the public ports to
+these instead: external **80 → 8080**, external **443 → 8443**, on the LAN
+IP of the machine running Caddy. Let's Encrypt and browsers/clients only
+ever see the standard public ports 80/443 — the port remap is invisible to
+them, handled entirely by the router's NAT.
+
+## External displays and Tubeist Watch
+
+`GET /<username>/api/status` returns a short UTF-8 plain text status, for example:
+
+```text
+Sollentuna VK C – Vallentuna VBK B
+Sets: 1–2
+Points: 14–25
+```
+
+After a scraped match ends, the second line is `Final: 1–3` and the points
+line is omitted. Formatting and volleyball knowledge belong to this server.
+Tubeist and its Watch companion just relay and display the text; other services
+can provide a different sport or any other short status with the same contract.
+
+In Tubeist settings, set **Watch companion → External status URL** to the full
+address `https://yourdomain.example.com/<username>/api/status`. The address must
+return HTTP 200 with `Content-Type: text/plain; charset=utf-8`, without redirects.
+Tubeist adds no path or suffix. Clear the setting to disable it. While Tubeist is
+active and streaming or recording, it fetches at most once every five seconds
+and forwards the latest text to the paired Watch. Swipe to the separate external
+status page in the companion app; the existing Live Activity layout is unchanged.
+Text becomes marked out of date after 30 seconds without a successful fetch.
+This timestamp reflects delivery, not the age of the underlying match data.
+
+Both `/api/status` and the JSON endpoint `/api/score` read `scoreboard.xml`, so
+manual updates and scraped scores use the same source as the overlay. No JSON
+sidecar is needed. Missing scoreboards return 404; incomplete or unreadable
+scoreboards return 503. Successful responses disable HTTP caching. These are
+public read endpoints, just like the overlay; do not include private information
+in team names. Existing upload authentication still applies to score changes.
+
+`/api/score` returns `home` and `away` objects with `name`, `sets`, and `points`,
+plus `matchEnded`. Completed overlays omit point fields, so the API returns zero
+for both points and `matchEnded: true`. The manual controller keeps point fields,
+so it does not signal match completion.
+
+The text endpoint bounds team names to 80 Unicode code points each and removes
+control characters and explicit bidirectional overrides. The response fits the
+client limits of 4,096 UTF-8 bytes, 500 characters, and 8 lines. Clients must
+render it literally, without interpreting markup, links, or commands.
 
 ## Version History
 
