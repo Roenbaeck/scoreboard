@@ -18,10 +18,18 @@ A multi-user web-based scoreboard application designed for volleyball games. It 
 
 ### Prerequisites
 
-Install required Python packages:
+Install required Python packages using the same interpreter and environment
+that will run `server.py`. If you use a virtual environment, activate it first.
+
 ```bash
-pip install flask waitress requests beautifulsoup4 lxml werkzeug
+python3 -m pip install flask waitress requests beautifulsoup4 lxml werkzeug
 ```
+
+**BeautifulSoup4 is required for server startup**, including manual-only setups.
+The server imports `score_status.py`, which uses it to read the saved scoreboard
+for the JSON and plain-text status endpoints. Its package name is
+`beautifulsoup4`, but its Python import name is `bs4`. The current `scraper.py`
+does not import BeautifulSoup.
 
 Python must provide `hashlib.pbkdf2_hmac` for password generation and login.
 On Python 3.12 and later, this requires working OpenSSL support (see
@@ -74,6 +82,25 @@ On Python 3.12 and later, this requires working OpenSSL support (see
    - Overlay: http://localhost:8081/yourusername/overlay/
 
 ## Troubleshooting
+
+### Server fails with `ModuleNotFoundError: No module named 'bs4'`
+
+BeautifulSoup4 is missing from the Python environment running the server.
+Existing installations need this dependency for the new status endpoints,
+regardless of whether they use the scraper or Watch integration.
+
+Activate the server's virtual environment, if applicable, then install the
+package, verify the import, and restart:
+
+```sh
+python3 -m pip install beautifulsoup4
+python3 -c 'from bs4 import BeautifulSoup; print("BeautifulSoup OK")'
+python3 server.py
+```
+
+If a service starts the server with a specific Python executable, use that same
+executable in these commands. Installing the package into another Python
+environment will not resolve the error.
 
 ### Login fails with `hashlib` has no attribute `pbkdf2_hmac`
 
@@ -137,8 +164,9 @@ and OpenSSL packages or use a Python build with working OpenSSL support.
 
 [Caddy](https://caddyserver.com) provisions and renews a Let's Encrypt
 certificate automatically and reverse-proxies to the Waitress server
-unchanged, so clients that require HTTPS, including Tubeist’s external status
-relay, can reach the scoreboard over a real DNS hostname:
+unchanged. This is an optional way to provide HTTPS over a real DNS hostname.
+Tubeist supports both HTTP and HTTPS for overlays and external status, so an
+existing HTTP deployment does not need a reverse proxy for the Watch status page:
 
 ```bash
 brew install caddy   # or your OS package manager
@@ -184,8 +212,29 @@ Tubeist and its Watch companion just relay and display the text; other services
 can provide a different sport or any other short status with the same contract.
 
 In Tubeist settings, set **Watch companion → External status URL** to the full
-address `https://yourdomain.example.com/<username>/api/status`. The address must
-return HTTP 200 with `Content-Type: text/plain; charset=utf-8`, without redirects.
+HTTP or HTTPS address, including the username and `/api/status` path:
+
+- Existing HTTP server: `http://192.168.1.50:8081/<username>/api/status`
+- HTTPS reverse proxy: `https://yourdomain.example.com/<username>/api/status`
+
+The Scoreboard control page shows this address under **Tubeist status URL**.
+Use **Copy Status URL** to copy it, then paste it into Tubeist. The address uses
+the protocol, host, port, and username from the control page you opened, including
+when you access it through an HTTPS reverse proxy. Open the control page using
+the same server address that the iPhone can reach.
+
+Replace the example host, port, and username with yours. Use an address reachable
+from the iPhone; `localhost` on the phone does not refer to your NAS. HTTP works
+with the existing Waitress server directly, without a certificate or proxy. For
+a local server, allow Tubeist's Local Network access when iOS asks. If access was
+denied earlier, enable it in iPhone Settings → Privacy & Security → Local Network.
+HTTPS is recommended, especially across the internet: HTTP allows the URL and
+status text to be read or altered in transit. Do not send private URL tokens or
+sensitive status information over HTTP. HTTPS certificates must be trusted by
+the iPhone; Tubeist does not bypass certificate checks.
+
+The address must return HTTP 200 with `Content-Type: text/plain; charset=utf-8`,
+without redirects. Both protocols use the same text validation and size limits.
 Tubeist adds no path or suffix. Clear the setting to disable it. While Tubeist is
 active and streaming or recording, it fetches at most once every five seconds
 and forwards the latest text to the paired Watch. Swipe to the separate external
