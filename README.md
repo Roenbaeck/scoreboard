@@ -164,8 +164,9 @@ and OpenSSL packages or use a Python build with working OpenSSL support.
 
 [Caddy](https://caddyserver.com) provisions and renews a Let's Encrypt
 certificate automatically and reverse-proxies to the Waitress server
-unchanged, so clients that require HTTPS, including Tubeist’s external status
-relay, can reach the scoreboard over a real DNS hostname:
+unchanged. This is an optional way to provide HTTPS over a real DNS hostname.
+Tubeist supports both HTTP and HTTPS for overlays and external status, so an
+existing HTTP deployment does not need a reverse proxy for the Watch status page:
 
 ```bash
 brew install caddy   # or your OS package manager
@@ -211,8 +212,23 @@ Tubeist and its Watch companion just relay and display the text; other services
 can provide a different sport or any other short status with the same contract.
 
 In Tubeist settings, set **Watch companion → External status URL** to the full
-address `https://yourdomain.example.com/<username>/api/status`. The address must
-return HTTP 200 with `Content-Type: text/plain; charset=utf-8`, without redirects.
+HTTP or HTTPS address, including the username and `/api/status` path:
+
+- Existing HTTP server: `http://192.168.1.50:8081/<username>/api/status`
+- HTTPS reverse proxy: `https://yourdomain.example.com/<username>/api/status`
+
+Replace the example host, port, and username with yours. Use an address reachable
+from the iPhone; `localhost` on the phone does not refer to your NAS. HTTP works
+with the existing Waitress server directly, without a certificate or proxy. For
+a local server, allow Tubeist's Local Network access when iOS asks. If access was
+denied earlier, enable it in iPhone Settings → Privacy & Security → Local Network.
+HTTPS is recommended, especially across the internet: HTTP allows the URL and
+status text to be read or altered in transit. Do not send private URL tokens or
+sensitive status information over HTTP. HTTPS certificates must be trusted by
+the iPhone; Tubeist does not bypass certificate checks.
+
+The address must return HTTP 200 with `Content-Type: text/plain; charset=utf-8`,
+without redirects. Both protocols use the same text validation and size limits.
 Tubeist adds no path or suffix. Clear the setting to disable it. While Tubeist is
 active and streaming or recording, it fetches at most once every five seconds
 and forwards the latest text to the paired Watch. Swipe to the separate external
