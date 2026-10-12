@@ -1,5 +1,6 @@
 from flask import (
     Flask,
+    Response,
     request,
     send_from_directory,
     send_file,
@@ -18,6 +19,8 @@ import time
 import json
 import re
 import secrets
+import tempfile
+from score_status import read_score, format_status
 from collections import defaultdict
 from werkzeug.security import check_password_hash
 from password_support import require_password_hashing
@@ -386,8 +389,17 @@ def user_upload(username):
         user_data_dir = _get_user_data_dir(username)
         os.makedirs(user_data_dir, exist_ok=True)
         filepath = os.path.join(user_data_dir, filename)
-        with open(filepath, 'w', encoding='utf-8') as f:
-            f.write(filedata)
+        # Readers must see either the previous complete update or this one.
+        temporary_path = None
+        try:
+            with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8',
+                                             dir=user_data_dir, delete=False) as f:
+                temporary_path = f.name
+                f.write(filedata)
+            os.replace(temporary_path, filepath)
+        finally:
+            if temporary_path and os.path.exists(temporary_path):
+                os.unlink(temporary_path)
 
         return 'OK', 200
 
@@ -395,18 +407,36 @@ def user_upload(username):
         return str(e), 500
 
 # API endpoints
-@app.route('/<username>/api/score')
-def user_score(username):
-    """Serve the current match score as JSON (public, no auth - for overlays
-    and remote clients like a Watch companion app, same posture as
-    scoreboard.xml above)."""
+def _current_score(username):
     if not validate_username(username) or not get_user(username):
         abort(404)
-    user_data_dir = _get_user_data_dir(username)
-    json_path = os.path.join(user_data_dir, 'scoreboard.json')
-    if not os.path.exists(json_path):
+    path = os.path.join(_get_user_data_dir(username), 'scoreboard.xml')
+    try:
+        return read_score(path)
+    except FileNotFoundError:
         abort(404)
-    return send_file(json_path, mimetype='application/json')
+    except (OSError, UnicodeError, ValueError):
+        abort(503, description='Scoreboard is temporarily unavailable')
+
+
+def _uncached(response):
+    response.headers['Cache-Control'] = 'no-store'
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    return response
+
+
+@app.route('/<username>/api/score')
+def user_score(username):
+    """Public JSON score, derived from the current manual or scraped overlay."""
+    return _uncached(jsonify(_current_score(username)))
+
+
+@app.route('/<username>/api/status')
+def user_status(username):
+    """Public plain text for generic displays; formatting belongs here."""
+    return _uncached(Response(format_status(_current_score(username)),
+                              content_type='text/plain; charset=utf-8'))
+
 
 @app.route('/<username>/api/scraper/status', methods=['GET'])
 def user_scraper_status(username):

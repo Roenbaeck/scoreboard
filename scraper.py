@@ -742,42 +742,6 @@ def write_scoreboard_xml(state, output_path, show_ended_sets=False):
         print(f"Failed writing scoreboard XML: {e}")
         return False
 
-def write_scoreboard_json(state, output_path):
-    """Write (atomically) a compact JSON score summary alongside the XML overlay.
-
-    Mirrors write_scoreboard_xml's atomic-write pattern, but as structured
-    data for API consumers (e.g. a Watch client) rather than an overlay.
-    The sidecar path is derived from output_path by swapping its extension,
-    so callers don't need a separate --output-json flag.
-    """
-    if not state:
-        return False
-    home = state['home']
-    away = state['away']
-    payload = {
-        'home': {
-            'name': home.get('name', 'Home'),
-            'sets': home.get('sets', 0),
-            'points': home.get('points', 0)
-        },
-        'away': {
-            'name': away.get('name', 'Away'),
-            'sets': away.get('sets', 0),
-            'points': away.get('points', 0)
-        },
-        'matchEnded': bool(state.get('matchEnded', False))
-    }
-    json_path = os.path.splitext(output_path)[0] + '.json'
-    tmp_path = json_path + '.tmp'
-    try:
-        with open(tmp_path, 'w', encoding='utf-8') as f:
-            json.dump(payload, f)
-        os.replace(tmp_path, json_path)
-        return True
-    except OSError as e:
-        print(f"Failed writing scoreboard JSON: {e}")
-        return False
-
 def main(argv=None):
     """Entry point for command-line execution.
 
@@ -851,7 +815,6 @@ def main(argv=None):
                 state['forceLineup'] = False
             if state:
                 write_scoreboard_xml(state, args.output, args.show_ended_sets)
-                write_scoreboard_json(state, args.output)
                 print(f"Scoreboard written to {args.output}")
         except requests.exceptions.RequestException as e:
             print(f"Error fetching API data: {e}")
@@ -915,7 +878,6 @@ def main(argv=None):
                 state['forceLineup'] = False
             if state:
                 if write_scoreboard_xml(state, args.output, args.show_ended_sets):
-                    write_scoreboard_json(state, args.output)
                     if cycles % 10 == 0:  # reduce chatter
                         print(f"[Daemon] Updated scoreboard (home {state['home']['points']} - away {state['away']['points']})")
                 if state.get('matchEnded'):
