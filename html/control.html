@@ -157,6 +157,14 @@
             <span id="overlay-copy-status" role="status" aria-live="polite"></span>
         </div>
 
+        <div class="status-box">
+            <label for="tubeist-status-url">Tubeist status URL</label>
+            <p>Paste this URL into Tubeist Settings → Watch companion → External status URL. It works with both manual scoring and scraped scores.</p>
+            <input type="text" id="tubeist-status-url" readonly>
+            <button type="button" id="copy-tubeist-status-btn">Copy Status URL</button>
+            <span id="tubeist-status-copy-status" role="status" aria-live="polite"></span>
+        </div>
+
         <form id="control-form" onsubmit="return false;">
             <label for="url-input">Match URL</label>
             <input type="text" id="url-input" placeholder="https://www.profixio.com/..." required>
@@ -222,20 +230,24 @@
         }
         overlayTheme.addEventListener('change', updateOverlayUrl);
         updateOverlayUrl();
-        overlayUrl.addEventListener('click', () => overlayUrl.select());
-        document.getElementById('copy-overlay-btn').addEventListener('click', async () => {
+
+        const tubeistStatusUrl = document.getElementById('tubeist-status-url');
+        const tubeistStatusCopyStatus = document.getElementById('tubeist-status-copy-status');
+        tubeistStatusUrl.value = new URL(`/${USERNAME}/api/status`, window.location.origin).href;
+
+        async function copyUrl(input, copyStatus) {
             if (navigator.clipboard && window.isSecureContext) {
                 try {
-                    await navigator.clipboard.writeText(overlayUrl.value);
-                    overlayCopyStatus.textContent = 'Copied!';
+                    await navigator.clipboard.writeText(input.value);
+                    copyStatus.textContent = 'Copied!';
                     return;
                 } catch (error) {
                     // Try selection-based copying if clipboard access is denied.
                 }
             }
-            overlayUrl.focus();
-            overlayUrl.select();
-            overlayUrl.setSelectionRange(0, overlayUrl.value.length);
+            input.focus();
+            input.select();
+            input.setSelectionRange(0, input.value.length);
             // Compatibility fallback for HTTP deployments without Clipboard API.
             let copied = false;
             try {
@@ -243,10 +255,17 @@
             } catch (error) {
                 // Keep the URL selected if the browser blocks both methods.
             }
-            overlayCopyStatus.textContent = copied
+            copyStatus.textContent = copied
                 ? 'Copied!'
                 : 'Automatic copying is unavailable. Press Ctrl+C / ⌘C or select Copy from the menu.';
-        });
+        }
+        for (const [input, buttonId, copyStatus] of [
+            [overlayUrl, 'copy-overlay-btn', overlayCopyStatus],
+            [tubeistStatusUrl, 'copy-tubeist-status-btn', tubeistStatusCopyStatus]
+        ]) {
+            input.addEventListener('click', () => input.select());
+            document.getElementById(buttonId).addEventListener('click', () => copyUrl(input, copyStatus));
+        }
         
         const statusText = document.getElementById('status-text');
         const statusUrl = document.getElementById('status-url');

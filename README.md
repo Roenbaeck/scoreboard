@@ -217,6 +217,12 @@ HTTP or HTTPS address, including the username and `/api/status` path:
 - Existing HTTP server: `http://192.168.1.50:8081/<username>/api/status`
 - HTTPS reverse proxy: `https://yourdomain.example.com/<username>/api/status`
 
+The Scoreboard control page shows this address under **Tubeist status URL**.
+Use **Copy Status URL** to copy it, then paste it into Tubeist. The address uses
+the protocol, host, port, and username from the control page you opened, including
+when you access it through an HTTPS reverse proxy. Open the control page using
+the same server address that the iPhone can reach.
+
 Replace the example host, port, and username with yours. Use an address reachable
 from the iPhone; `localhost` on the phone does not refer to your NAS. HTTP works
 with the existing Waitress server directly, without a certificate or proxy. For
